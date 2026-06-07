@@ -1,11 +1,14 @@
-import {SearchIcon} from './icons.jsx'
-import {KAGI_SEARCH} from './util.js'
+import {useState} from 'preact/hooks'
+import {SearchIcon} from '#/newtab/icons.tsx'
+import {KAGI_SEARCH} from '#/newtab/util.ts'
 
 export function Search() {
-  const onSubmit = (event) => {
+  const [query, setQuery] = useState('')
+
+  const onSubmit = (event: Event) => {
     event.preventDefault()
-    const query = event.currentTarget.q.value.trim()
-    if (query) window.location.href = KAGI_SEARCH + encodeURIComponent(query)
+    const trimmed = query.trim()
+    if (trimmed) window.location.href = KAGI_SEARCH + encodeURIComponent(trimmed)
   }
 
   return (
@@ -15,12 +18,13 @@ export function Search() {
       </span>
       <input
         class="search_input"
-        name="q"
         type="search"
         placeholder="Search with Kagi"
         autocomplete="off"
         spellcheck={false}
         aria-label="Search with Kagi"
+        value={query}
+        onInput={(event) => setQuery(event.currentTarget.value)}
       />
     </form>
   )

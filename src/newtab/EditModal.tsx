@@ -1,39 +1,40 @@
 import {useEffect, useState} from 'preact/hooks'
-import {DEFAULT_COLOR} from './storage.js'
-import {normalizeUrl, toHex} from './util.js'
-import {DialLogo} from './DialLogo.jsx'
+import {DEFAULT_COLOR} from '#/newtab/storage.ts'
+import {normalizeUrl, toHex} from '#/newtab/util.ts'
+import {DialLogo} from '#/newtab/DialLogo.tsx'
+import type {DialDraft, ModalTarget} from '#/newtab/types.ts'
 
-// `target` is either {mode: 'add'} or {mode: 'edit', dial}.
-export function EditModal({target, onSave, onDelete, onClose}) {
-  const editing = target.mode === 'edit'
-  const base = editing ? target.dial : {}
+interface EditModalProps {
+  target: ModalTarget
+  onSave: (data: DialDraft, id: string | null) => void
+  onDelete: (id: string) => void
+  onClose: () => void
+}
 
-  const [name, setName] = useState(base.name || '')
-  const [url, setUrl] = useState(base.url || '')
-  const [color, setColor] = useState(toHex(base.color))
-  const [svg, setSvg] = useState(base.svg || '')
+export function EditModal({target, onSave, onDelete, onClose}: EditModalProps) {
+  const dial = target.mode === 'edit' ? target.dial : null
+
+  const [name, setName] = useState(dial?.name ?? '')
+  const [url, setUrl] = useState(dial?.url ?? '')
+  const [color, setColor] = useState(toHex(dial?.color))
+  const [svg, setSvg] = useState(dial?.svg ?? '')
 
   // Close on Escape.
   useEffect(() => {
-    const handler = (event) => {
+    const handler = (event: KeyboardEvent) => {
       if (event.key === 'Escape') onClose()
     }
     document.addEventListener('keydown', handler)
     return () => document.removeEventListener('keydown', handler)
   }, [onClose])
 
-  const submit = (event) => {
+  const submit = (event: Event) => {
     event.preventDefault()
     const cleanName = name.trim()
     const cleanUrl = normalizeUrl(url)
     if (!cleanName || !cleanUrl) return
-    onSave(
-      {name: cleanName, url: cleanUrl, color, svg: svg.trim()},
-      editing ? target.dial.id : null
-    )
+    onSave({name: cleanName, url: cleanUrl, color, svg: svg.trim()}, dial?.id ?? null)
   }
-
-  const preview = {name, color, svg}
 
   return (
     <div
@@ -43,7 +44,7 @@ export function EditModal({target, onSave, onDelete, onClose}) {
       }}
     >
       <form class="modal_card" onSubmit={submit}>
-        <h2 class="modal_title">{editing ? 'Edit site' : 'Add a site'}</h2>
+        <h2 class="modal_title">{dial ? 'Edit site' : 'Add a site'}</h2>
 
         <div class="modal_body">
           <div class="modal_fields">
@@ -96,8 +97,8 @@ export function EditModal({target, onSave, onDelete, onClose}) {
           <div class="modal_previewWrap">
             <span class="modal_label">Preview</span>
             <div class="cell cell--preview">
-              <div class="tile" style={{'--dial-color': color || DEFAULT_COLOR}}>
-                <DialLogo dial={preview} />
+              <div class="tile" style={`--dial-color: ${color || DEFAULT_COLOR}`}>
+                <DialLogo dial={{name, svg}} />
               </div>
               <span class="cell_label">{name || 'Preview'}</span>
             </div>
@@ -105,12 +106,8 @@ export function EditModal({target, onSave, onDelete, onClose}) {
         </div>
 
         <div class="modal_actions">
-          {editing && (
-            <button
-              class="btn btn--danger"
-              type="button"
-              onClick={() => onDelete(target.dial.id)}
-            >
+          {dial && (
+            <button class="btn btn--danger" type="button" onClick={() => onDelete(dial.id)}>
               Delete
             </button>
           )}

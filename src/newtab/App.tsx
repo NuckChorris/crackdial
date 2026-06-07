@@ -1,20 +1,20 @@
 import {useCallback, useEffect, useState} from 'preact/hooks'
-import {loadDials, saveDials} from './storage.js'
-import {newId} from './util.js'
-import {Search} from './Search.jsx'
-import {SpeedDialGrid} from './SpeedDialGrid.jsx'
-import {EditModal} from './EditModal.jsx'
+import {loadDials, saveDials} from '#/newtab/storage.ts'
+import {newId} from '#/newtab/util.ts'
+import {Search} from '#/newtab/Search.tsx'
+import {SpeedDialGrid} from '#/newtab/SpeedDialGrid.tsx'
+import {EditModal} from '#/newtab/EditModal.tsx'
+import type {DialDraft, ModalTarget, SpeedDial} from '#/newtab/types.ts'
 
 export function App() {
-  const [dials, setDials] = useState([])
-  // null = closed, {mode: 'add'} = adding, {mode: 'edit', dial} = editing.
-  const [modal, setModal] = useState(null)
+  const [dials, setDials] = useState<SpeedDial[]>([])
+  const [modal, setModal] = useState<ModalTarget | null>(null)
 
   useEffect(() => {
     loadDials().then(setDials)
   }, [])
 
-  const handleSave = useCallback((data, id) => {
+  const handleSave = useCallback((data: DialDraft, id: string | null) => {
     setDials((prev) => {
       const next = id
         ? prev.map((dial) => (dial.id === id ? {...dial, ...data} : dial))
@@ -25,7 +25,7 @@ export function App() {
     setModal(null)
   }, [])
 
-  const handleDelete = useCallback((id) => {
+  const handleDelete = useCallback((id: string) => {
     setDials((prev) => {
       const next = prev.filter((dial) => dial.id !== id)
       saveDials(next)
@@ -40,9 +40,10 @@ export function App() {
       <SpeedDialGrid
         dials={dials}
         onAdd={() => setModal({mode: 'add'})}
-        onEdit={(id) =>
-          setModal({mode: 'edit', dial: dials.find((dial) => dial.id === id)})
-        }
+        onEdit={(id) => {
+          const dial = dials.find((entry) => entry.id === id)
+          if (dial) setModal({mode: 'edit', dial})
+        }}
       />
       {modal && (
         <EditModal

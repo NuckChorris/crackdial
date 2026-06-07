@@ -1,3 +1,5 @@
+import type {SpeedDial} from '#/newtab/types.ts'
+
 // Cross-browser persistent storage for speed dials.
 // chrome.storage.local exists in Chromium browsers and Firefox alike; we fall
 // back to browser.storage.local just in case, and to in-memory defaults if no
@@ -7,7 +9,7 @@ const KEY = 'speedDials'
 
 export const DEFAULT_COLOR = '#2b2f3a'
 
-const DEFAULT_DIALS = [
+const DEFAULT_DIALS: SpeedDial[] = [
   {
     id: 'seed-youtube',
     name: 'YouTube',
@@ -38,19 +40,22 @@ const DEFAULT_DIALS = [
   }
 ]
 
-const area =
-  (globalThis.chrome && chrome.storage && chrome.storage.local) ||
-  (globalThis.browser && browser.storage && browser.storage.local) ||
-  null
+// Access through globalThis: a bare `browser` identifier throws ReferenceError
+// in Chromium (where the global is absent) even with optional chaining.
+// (`chrome.storage.local` exists in Firefox too and supports callbacks, so the
+// browser.* branch is just defensive.)
+const browserApi = (globalThis as {browser?: typeof chrome}).browser
+const area: chrome.storage.StorageArea | null =
+  globalThis.chrome?.storage?.local ?? browserApi?.storage?.local ?? null
 
-const clone = (dials) => dials.map((d) => ({...d}))
+const clone = (dials: SpeedDial[]): SpeedDial[] => dials.map((d) => ({...d}))
 
-export function loadDials() {
+export function loadDials(): Promise<SpeedDial[]> {
   return new Promise((resolve) => {
     if (!area) return resolve(clone(DEFAULT_DIALS))
 
     area.get(KEY, (res) => {
-      const stored = res && res[KEY]
+      const stored = res?.[KEY] as SpeedDial[] | undefined
       if (Array.isArray(stored)) return resolve(stored)
 
       // First run: seed defaults and persist them.
@@ -60,7 +65,7 @@ export function loadDials() {
   })
 }
 
-export function saveDials(dials) {
+export function saveDials(dials: SpeedDial[]): Promise<void> {
   return new Promise((resolve) => {
     if (!area) return resolve()
     area.set({[KEY]: dials}, () => resolve())

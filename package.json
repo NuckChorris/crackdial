@@ -1,10 +1,13 @@
 {
   "private": true,
   "name": "browser-launchpad",
-  "description": "JavaScript-based extension with a sidebar panel. Adds a sidebar with a simple page.",
+  "description": "A custom new tab page with a Kagi search bar and manageable speed dials.",
   "version": "1.0.0",
   "license": "MIT",
   "type": "module",
+  "imports": {
+    "#/*": "./src/*"
+  },
   "author": {
     "name": "Your Name",
     "email": "your@email.com",
@@ -13,6 +16,7 @@
   "scripts": {
     "dev": "extension dev",
     "start": "extension start",
+    "typecheck": "tsc --noEmit",
     "build": "extension build",
     "preview": "extension preview",
     "build:chrome": "extension build --browser chrome",
@@ -23,7 +27,9 @@
     "preact": "^10.29.2"
   },
   "devDependencies": {
-    "extension": "^3.18.2"
+    "@types/chrome": "^0.1.43",
+    "extension": "^3.18.2",
+    "typescript": "^6.0.3"
   },
   "packageManager": "npm@10.9.0"
 }

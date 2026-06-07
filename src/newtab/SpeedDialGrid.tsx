@@ -1,9 +1,15 @@
-import {DEFAULT_COLOR} from './storage.js'
-import {normalizeUrl} from './util.js'
-import {DialLogo} from './DialLogo.jsx'
-import {EditIcon, PlusIcon} from './icons.jsx'
+import {DEFAULT_COLOR} from '#/newtab/storage.ts'
+import {normalizeUrl} from '#/newtab/util.ts'
+import {DialLogo} from '#/newtab/DialLogo.tsx'
+import {EditIcon, PlusIcon} from '#/newtab/icons.tsx'
+import type {SpeedDial} from '#/newtab/types.ts'
 
-function DialCell({dial, onEdit}) {
+interface DialCellProps {
+  dial: SpeedDial
+  onEdit: (id: string) => void
+}
+
+function DialCell({dial, onEdit}: DialCellProps) {
   const go = () => {
     const url = normalizeUrl(dial.url)
     if (url) window.location.href = url
@@ -22,7 +28,7 @@ function DialCell({dial, onEdit}) {
         }
       }}
     >
-      <div class="tile" style={{'--dial-color': dial.color || DEFAULT_COLOR}}>
+      <div class="tile" style={`--dial-color: ${dial.color || DEFAULT_COLOR}`}>
         <button
           class="tile_edit"
           type="button"
@@ -42,7 +48,11 @@ function DialCell({dial, onEdit}) {
   )
 }
 
-function AddCell({onAdd}) {
+interface AddCellProps {
+  onAdd: () => void
+}
+
+function AddCell({onAdd}: AddCellProps) {
   return (
     <div
       class="cell"
@@ -66,7 +76,13 @@ function AddCell({onAdd}) {
   )
 }
 
-export function SpeedDialGrid({dials, onAdd, onEdit}) {
+interface SpeedDialGridProps {
+  dials: SpeedDial[]
+  onAdd: () => void
+  onEdit: (id: string) => void
+}
+
+export function SpeedDialGrid({dials, onAdd, onEdit}: SpeedDialGridProps) {
   return (
     <div class="grid">
       {dials.map((dial) => (

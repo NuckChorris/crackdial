@@ -1,0 +1,45 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+
+    // Preact JSX: tsc uses preact's runtime types; the bundler (SWC) is
+    // configured by extension.js to emit the same automatic runtime.
+    "jsx": "react-jsx",
+    "jsxImportSource": "preact",
+
+    // Bundler-friendly: SWC transpiles per-file and strips types, so tsc is
+    // type-check only (`npm run typecheck`).
+    "noEmit": true,
+    // This project is `"type": "module"`, so the bundler requires explicit
+    // source extensions in import specifiers (e.g. `#/newtab/App.tsx`).
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "resolveJsonModule": true,
+    "allowJs": true,
+    "checkJs": false,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+
+    // Strictness.
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "forceConsistentCasingInFileNames": true,
+
+    // Project-relative imports: `#/foo` -> `src/foo`. Mirrors the package.json
+    // "imports" field (which is what the bundler resolves at build time).
+    // With moduleResolution "bundler", paths resolve relative to this file.
+    "paths": {
+      "#/*": ["./src/*"]
+    },
+
+    "types": ["chrome"]
+  },
+  "include": ["src", "extension-env.d.ts"],
+  "exclude": ["node_modules", "dist"]
+}
