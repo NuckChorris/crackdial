@@ -13,9 +13,6 @@
     // Bundler-friendly: SWC transpiles per-file and strips types, so tsc is
     // type-check only (`npm run typecheck`).
     "noEmit": true,
-    // This project is `"type": "module"`, so the bundler requires explicit
-    // source extensions in import specifiers (e.g. `#/newtab/App.tsx`).
-    "allowImportingTsExtensions": true,
     "isolatedModules": true,
     "verbatimModuleSyntax": true,
     "resolveJsonModule": true,

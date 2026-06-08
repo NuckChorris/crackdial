@@ -1,4 +1,4 @@
-import {DEFAULT_COLOR} from '#/newtab/storage.ts'
+import {DEFAULT_COLOR} from '#/newtab/storage'
 
 export const KAGI_SEARCH = 'https://kagi.com/search?q='
 

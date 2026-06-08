@@ -1,6 +1,6 @@
 import {useState} from 'preact/hooks'
-import {SearchIcon} from '#/newtab/icons.tsx'
-import {KAGI_SEARCH} from '#/newtab/util.ts'
+import {SearchIcon} from '#/newtab/icons'
+import {KAGI_SEARCH} from '#/newtab/util'
 
 export function Search() {
   const [query, setQuery] = useState('')

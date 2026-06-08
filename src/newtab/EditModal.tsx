@@ -1,8 +1,8 @@
 import {useEffect, useState} from 'preact/hooks'
-import {DEFAULT_COLOR} from '#/newtab/storage.ts'
-import {normalizeUrl, toHex} from '#/newtab/util.ts'
-import {DialLogo} from '#/newtab/DialLogo.tsx'
-import type {DialDraft, ModalTarget} from '#/newtab/types.ts'
+import {DEFAULT_COLOR} from '#/newtab/storage'
+import {normalizeUrl, toHex} from '#/newtab/util'
+import {DialLogo} from '#/newtab/DialLogo'
+import type {DialDraft, ModalTarget} from '#/newtab/types'
 
 interface EditModalProps {
   target: ModalTarget

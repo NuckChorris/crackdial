@@ -74,8 +74,11 @@ for static inspection instead of killing them.
 ## Conventions worth knowing
 
 - **`#/` imports** map to `./src/*` (package.json `imports` field + tsconfig
-  `paths`). The project is `"type": "module"`, so specifiers need **explicit
-  source extensions**: `import {App} from '#/newtab/App.tsx'`.
+  `paths`) and are written **extensionless**:
+  `import {App} from '#/newtab/App'`. The project is `"type": "module"`, so the
+  `config` hook in `extension.config.js` sets `resolve.fullySpecified: false`
+  to allow extensionless ESM resolution. **CSS imports keep their extension**
+  (`import '#/newtab/styles.css'`, `import * as s from './X.module.css'`).
 - **CSS Modules** (`*.module.css`) emit **named exports** here, so import the
   namespace: `import * as styles from './X.module.css'`. Global stylesheets
   (e.g. `styles.css`) are imported for side effect only.

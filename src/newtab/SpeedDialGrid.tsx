@@ -1,8 +1,8 @@
-import {DEFAULT_COLOR} from '#/newtab/storage.ts'
-import {normalizeUrl} from '#/newtab/util.ts'
-import {DialLogo} from '#/newtab/DialLogo.tsx'
-import {EditIcon, PlusIcon} from '#/newtab/icons.tsx'
-import type {SpeedDial} from '#/newtab/types.ts'
+import {DEFAULT_COLOR} from '#/newtab/storage'
+import {normalizeUrl} from '#/newtab/util'
+import {DialLogo} from '#/newtab/DialLogo'
+import {EditIcon, PlusIcon} from '#/newtab/icons'
+import type {SpeedDial} from '#/newtab/types'
 
 interface DialCellProps {
   dial: SpeedDial

@@ -1,10 +1,10 @@
 import {useCallback, useEffect, useState} from 'preact/hooks'
-import {loadDials, saveDials} from '#/newtab/storage.ts'
-import {newId} from '#/newtab/util.ts'
-import {Search} from '#/newtab/Search.tsx'
-import {SpeedDialGrid} from '#/newtab/SpeedDialGrid.tsx'
-import {EditModal} from '#/newtab/EditModal.tsx'
-import type {DialDraft, ModalTarget, SpeedDial} from '#/newtab/types.ts'
+import {loadDials, saveDials} from '#/newtab/storage'
+import {newId} from '#/newtab/util'
+import {Search} from '#/newtab/Search'
+import {SpeedDialGrid} from '#/newtab/SpeedDialGrid'
+import {EditModal} from '#/newtab/EditModal'
+import type {DialDraft, ModalTarget, SpeedDial} from '#/newtab/types'
 
 export function App() {
   const [dials, setDials] = useState<SpeedDial[]>([])
