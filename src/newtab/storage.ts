@@ -73,3 +73,62 @@ export function saveDials(dials: SpeedDial[]): Promise<void> {
     area.set({[KEY]: dials}, () => resolve())
   })
 }
+
+// Local id generator. Inlined (rather than importing util.newId) to avoid a
+// circular import — util imports DEFAULT_COLOR from this module.
+function genId(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID()
+  }
+  return `dial-${Date.now()}-${Math.floor(Math.random() * 1e6)}`
+}
+
+/** Serialize dials for an export file (pretty-printed JSON). */
+export function dialsToJson(dials: SpeedDial[]): string {
+  return JSON.stringify(dials, null, 2)
+}
+
+/**
+ * Parse an import file back into dials, tolerant of hand-edited/partial JSON:
+ * entries need a name + url; everything else is coerced or defaulted, and ids
+ * are kept but de-duplicated (regenerated when missing/colliding). Returns null
+ * for non-JSON, a non-array, or an array whose every entry was unusable.
+ */
+export function dialsFromJson(text: string): SpeedDial[] | null {
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(text)
+  } catch {
+    return null
+  }
+  if (!Array.isArray(parsed)) return null
+
+  const seen = new Set<string>()
+  const out: SpeedDial[] = []
+  for (const raw of parsed) {
+    if (!raw || typeof raw !== 'object') continue
+    const e = raw as Record<string, unknown>
+    const name = typeof e.name === 'string' ? e.name.trim() : ''
+    const url = typeof e.url === 'string' ? e.url.trim() : ''
+    if (!name || !url) continue
+
+    let id = typeof e.id === 'string' && e.id ? e.id : genId()
+    while (seen.has(id)) id = genId()
+    seen.add(id)
+
+    const dial: SpeedDial = {
+      id,
+      name,
+      url,
+      color: typeof e.color === 'string' ? e.color : DEFAULT_COLOR,
+      svg: typeof e.svg === 'string' ? e.svg : ''
+    }
+    if (typeof e.foreground === 'string') dial.foreground = e.foreground
+    if (typeof e.scale === 'number' && Number.isFinite(e.scale)) dial.scale = e.scale
+    out.push(dial)
+  }
+
+  // Non-empty input that yielded nothing usable is a bad file, not an empty set.
+  if (parsed.length > 0 && out.length === 0) return null
+  return out
+}
