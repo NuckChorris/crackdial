@@ -1,11 +1,38 @@
 :root {
+  color-scheme: light dark;
+
+  --bg: #14161f;
   --newtab-text: rgba(255, 255, 255, 0.92);
   --newtab-muted: rgba(255, 255, 255, 0.62);
   --surface: rgba(255, 255, 255, 0.1);
   --surface-strong: rgba(255, 255, 255, 0.16);
   --border: rgba(255, 255, 255, 0.14);
+  --border-hover: rgba(255, 255, 255, 0.4);
+  --focus-ring: rgba(255, 255, 255, 0.5);
+  --ring-contrast: rgba(255, 255, 255, 0.9);
   --modal-bg: #1b1f2b;
+  --input-bg: rgba(0, 0, 0, 0.25);
+  --shadow: rgba(0, 0, 0, 0.28);
+  --shadow-strong: rgba(0, 0, 0, 0.38);
   --radius: 16px;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #f3f4f6;
+    --newtab-text: rgba(17, 20, 28, 0.92);
+    --newtab-muted: rgba(17, 20, 28, 0.55);
+    --surface: rgba(17, 20, 28, 0.05);
+    --surface-strong: rgba(17, 20, 28, 0.09);
+    --border: rgba(17, 20, 28, 0.12);
+    --border-hover: rgba(17, 20, 28, 0.35);
+    --focus-ring: rgba(17, 20, 28, 0.45);
+    --ring-contrast: rgba(17, 20, 28, 0.7);
+    --modal-bg: #ffffff;
+    --input-bg: rgba(17, 20, 28, 0.04);
+    --shadow: rgba(17, 20, 28, 0.1);
+    --shadow-strong: rgba(17, 20, 28, 0.18);
+  }
 }
 
 * {
@@ -23,12 +50,7 @@ body {
   font-family:
     -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
     Arial, "Noto Sans", sans-serif;
-  background: #14161f;
-  background-image:
-    radial-gradient(circle at 20% 18%, #3a3f7a 0%, transparent 45%),
-    radial-gradient(circle at 82% 78%, #2c5364 0%, transparent 48%),
-    linear-gradient(160deg, #20243b 0%, #12141d 60%, #0a0c10 100%);
-  background-attachment: fixed;
+  background: var(--bg);
 }
 
 /* ----------------------------------------------------------------- layout */
@@ -44,44 +66,50 @@ body {
 
 /* ----------------------------------------------------------------- search */
 
+/* Slot: reserves the bar's layout space so the absolutely-positioned panel can
+   overlay the grid below without shoving it down. Lifted above the grid tiles
+   (each its own stacking context via isolation/transform) but below the modal
+   (z-index: 10). */
 .search {
-  width: min(560px, 92vw);
+  position: relative;
+  z-index: 1;
+  width: min(620px, 92vw);
+}
+
+.search_bar {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.85rem 1.25rem;
-  background: var(--surface);
+  gap: 0.4rem;
+  padding: 0.8rem 0.9rem 0.8rem 1.6rem;
+  background: var(--modal-bg);
   border: 1px solid var(--border);
-  border-radius: 999px;
-  backdrop-filter: blur(12px);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
-  transition: border-color 0.15s ease, background 0.15s ease;
+  /* A true (circular-arc) pill, not a squircle. Fixed at half the bar's ~66px
+     height rather than 999px: with 999px, flattening the bottom corners when the
+     panel opens halves the left-edge radius sum, which un-clamps the top corners
+     and doubles their radius. A fixed 33px stays constant open or closed. */
+  border-radius: 33px;
+  box-shadow: 0 12px 34px var(--shadow);
+  transition: border-color 0.15s ease;
 }
 
-.search:focus-within {
-  background: var(--surface-strong);
-  border-color: rgba(255, 255, 255, 0.3);
+.search:focus-within .search_bar {
+  border-color: var(--border-hover);
 }
 
-.search_icon {
-  display: flex;
-  width: 20px;
-  height: 20px;
-  color: var(--newtab-muted);
-  flex: 0 0 auto;
-}
-
-.search_icon svg {
-  width: 100%;
-  height: 100%;
+/* Open: bar + panel read as a single card. Flatten the seam corners; the bar's
+   bottom border stays as the divider between the input and the list. */
+.search--open .search_bar {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
 }
 
 .search_input {
   flex: 1;
+  min-width: 0;
   border: none;
   background: transparent;
   color: var(--newtab-text);
-  font-size: 1.05rem;
+  font-size: 1.25rem;
   outline: none;
 }
 
@@ -91,6 +119,163 @@ body {
 
 .search_input::-webkit-search-cancel-button {
   -webkit-appearance: none;
+}
+
+.search_action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: none;
+  border-radius: 12px;
+  corner-shape: squircle;
+  background: transparent;
+  color: var(--newtab-muted);
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.search_action:hover {
+  color: var(--newtab-text);
+  background: var(--surface);
+}
+
+.search_action svg {
+  width: 22px;
+  height: 22px;
+}
+
+.search_sep {
+  flex: 0 0 auto;
+  width: 1px;
+  align-self: stretch;
+  margin: 0.4rem 0.15rem;
+  background: var(--border);
+}
+
+/* ------------------------------------------------------------- suggestions */
+
+/* Absolute so opening the list overlays the grid instead of pushing it. The
+   bar's bottom border is the divider, so this drops its own top border and
+   sits flush at top: 100%; the opaque panel hides the bar's downward shadow,
+   keeping the seam clean. */
+.search_panel {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 5;
+  overflow: hidden;
+  background: var(--modal-bg);
+  border: 1px solid var(--border);
+  border-top: none;
+  /* Round (not squircle) to match the pill ends; 33px == the bar's corner
+     radius, so open the widget reads as one lozenge: pill top, same round bottom. */
+  border-radius: 0 0 33px 33px;
+  box-shadow: 0 18px 44px var(--shadow-strong);
+}
+
+.suggest {
+  margin: 0;
+  padding: 0.4rem 0;
+  list-style: none;
+  max-height: min(56vh, 460px);
+  overflow-y: auto;
+}
+
+.suggest_item {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.5rem 1.4rem;
+  cursor: pointer;
+  color: var(--newtab-text);
+}
+
+.suggest_item--active {
+  background: var(--surface-strong);
+}
+
+.suggest_icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
+  color: var(--newtab-muted);
+}
+
+.suggest_icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.suggest_icon--bolt {
+  color: #f5a623;
+}
+
+.suggest_icon img {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  corner-shape: squircle;
+  object-fit: cover;
+}
+
+.suggest_main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.suggest_title {
+  font-size: 1.05rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.suggest_sub {
+  font-size: 0.85rem;
+  color: var(--newtab-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.suggest_hints {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  padding: 0.75rem 1.4rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.8rem;
+  color: var(--newtab-muted);
+}
+
+.hint {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.hint kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.5rem;
+  height: 1.5rem;
+  padding: 0 0.4rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  corner-shape: squircle;
+  color: #f5a623;
+  font-family: inherit;
+  font-size: 0.82rem;
 }
 
 /* ------------------------------------------------------------------- grid */
@@ -110,13 +295,14 @@ body {
   align-items: center;
   gap: 0.6rem;
   cursor: pointer;
-  border-radius: 18px;
+  border-radius: 40px;
+  corner-shape: squircle;
   outline: none;
   min-width: 0;
 }
 
 .cell:focus-visible {
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.5);
+  box-shadow: 0 0 0 2px var(--focus-ring);
 }
 
 .tile {
@@ -134,14 +320,39 @@ body {
   background: var(--dial-color, #2b2f3a);
   /* Foreground tint: drives the monogram and any currentColor SVGs. */
   color: var(--dial-fg, #fff);
-  border-radius: 16px;
-  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.28);
+  border-radius: 40px;
+  corner-shape: squircle;
+  box-shadow: 0 8px 22px var(--shadow);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .cell:hover .tile {
   transform: translateY(-3px);
-  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.38);
+  box-shadow: 0 14px 30px var(--shadow-strong);
+}
+
+/* iOS-style edit-mode jiggle. Per-card --wiggle-* vars (set inline) stagger the
+   phase/duration/amplitude so the cards don't move in sync. The running
+   animation overrides the hover-lift transform, which is fine in edit mode. */
+@keyframes tile-wiggle {
+  0%,
+  100% {
+    transform: rotate(calc(var(--wiggle-rot, 1.4deg) * -1)) translateY(0.4px);
+  }
+  50% {
+    transform: rotate(var(--wiggle-rot, 1.4deg)) translateY(-0.4px);
+  }
+}
+
+.grid--edit .tile:not(.tile--add) {
+  animation: tile-wiggle var(--wiggle-dur, 0.34s) ease-in-out infinite;
+  animation-delay: var(--wiggle-delay, 0s);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grid--edit .tile {
+    animation: none;
+  }
 }
 
 .tile_logo {
@@ -170,25 +381,28 @@ body {
 
 /*
  * Non-rainbow foreground recolors the logo: every filled element renders in
- * currentColor (the foreground). `fill="none"` is excluded so stroke-only line
- * icons keep their shape; rainbow tiles are excluded so their colors survive.
- * Covers the svg root (so inheriting/default-fill children recolor) and any
- * descendant that sets its own fill.
+ * currentColor (the foreground). The selector is deliberately broad (svg + all
+ * descendants) and `!important` so it also overrides colors set via a <style>
+ * block or class (e.g. `.st0{fill:#3b5eda}`) or an inline `style="fill:…"`.
+ * Those don't expose a [fill] attribute and would otherwise win: a class rule
+ * that directly matches a path beats the currentColor we'd merely inherit from
+ * the root, and only `!important` outranks the SVG's own normal <style> rule.
+ * `fill="none"` is spared so stroke-only line icons keep their shape; rainbow
+ * tiles are excluded so their colors survive.
  */
-.tile:not(.tile--rainbow) .tile_logo svg:not([fill]),
-.tile:not(.tile--rainbow) .tile_logo svg[fill]:not([fill='none']),
-.tile:not(.tile--rainbow) .tile_logo svg [fill]:not([fill='none']) {
-  fill: currentColor;
+.tile:not(.tile--rainbow) .tile_logo svg:not([fill='none']),
+.tile:not(.tile--rainbow) .tile_logo svg *:not([fill='none']) {
+  fill: currentColor !important;
 }
 
 /*
  * Same for stroke — but only elements that explicitly set one. Stroke defaults
- * to none, so (unlike fill) there's no svg:not([stroke]) catch-all: that would
- * add an outline to every fill-only icon.
+ * to none, so (unlike fill) there's no catch-all: that would add an outline to
+ * every fill-only icon. `!important` keeps it ahead of any <style>/class stroke.
  */
 .tile:not(.tile--rainbow) .tile_logo svg[stroke]:not([stroke='none']),
 .tile:not(.tile--rainbow) .tile_logo svg [stroke]:not([stroke='none']) {
-  stroke: currentColor;
+  stroke: currentColor !important;
 }
 
 .tile_monogram {
@@ -229,7 +443,7 @@ body {
 }
 
 .cell:hover .tile--add {
-  border-color: rgba(255, 255, 255, 0.4);
+  border-color: var(--border-hover);
   transform: translateY(-3px);
   box-shadow: none;
 }
@@ -256,12 +470,12 @@ body {
   justify-content: center;
   padding: 0;
   border: none;
-  border-radius: 8px;
+  border-radius: 999px;
   background: rgba(0, 0, 0, 0.32);
   color: #fff;
   cursor: pointer;
-  opacity: 0;
-  transition: opacity 0.15s ease, background 0.15s ease;
+  /* Rendered only in edit mode, so it's shown whenever present. */
+  transition: background 0.15s ease;
 }
 
 .tile_edit svg {
@@ -273,11 +487,6 @@ body {
   background: rgba(0, 0, 0, 0.5);
 }
 
-.cell:hover .tile_edit,
-.cell:focus-within .tile_edit {
-  opacity: 1;
-}
-
 @media (max-width: 640px) {
   .grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -285,6 +494,72 @@ body {
   .page {
     padding-top: 10vh;
   }
+}
+
+/* ----------------------------------------------------------- edit controls */
+
+/* Fixed bottom-right cluster. Above the grid, below the modal (z-index: 10). */
+.editbar {
+  position: fixed;
+  right: 1.25rem;
+  bottom: 1.25rem;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.editbar_btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--modal-bg);
+  color: var(--newtab-muted);
+  cursor: pointer;
+  box-shadow: 0 6px 18px var(--shadow);
+  /* Unobtrusive until you reach for it. */
+  opacity: 0.5;
+  transition: opacity 0.15s ease, color 0.15s ease, background 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.editbar_btn:hover {
+  opacity: 1;
+  color: var(--newtab-text);
+}
+
+/* While editing, the whole cluster is fully visible — only the idle toggle is
+   meant to fade into the background. */
+.editbar--editing .editbar_btn {
+  opacity: 1;
+}
+
+.editbar_btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Edit mode active: solid accent, fully opaque. The import/export buttons that
+   appear alongside also read clearly (they inherit hover for full opacity). */
+.editbar_btn--on {
+  opacity: 1;
+  color: #fff;
+  background: #4f7cff;
+  border-color: #4f7cff;
+}
+
+.editbar_btn--on:hover {
+  color: #fff;
+  background: #3f6bf0;
+}
+
+.editbar_file {
+  display: none;
 }
 
 /* ------------------------------------------------------------------ modal */
@@ -312,8 +587,9 @@ body {
   background: var(--modal-bg);
   border: 1px solid var(--border);
   border-radius: var(--radius);
+  corner-shape: squircle;
   padding: 1.5rem;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 24px 60px var(--shadow-strong);
 }
 
 .modal_title {
@@ -349,9 +625,10 @@ body {
 .modal_textarea {
   width: 100%;
   padding: 0.55rem 0.7rem;
-  background: rgba(0, 0, 0, 0.25);
+  background: var(--input-bg);
   border: 1px solid var(--border);
   border-radius: 10px;
+  corner-shape: squircle;
   color: var(--newtab-text);
   font-size: 0.95rem;
   font-family: inherit;
@@ -360,7 +637,7 @@ body {
 
 .modal_input:focus,
 .modal_textarea:focus {
-  border-color: rgba(255, 255, 255, 0.4);
+  border-color: var(--border-hover);
 }
 
 .modal_textarea {
@@ -423,7 +700,7 @@ body {
 }
 
 .swatch--on {
-  box-shadow: 0 0 0 2px var(--modal-bg), 0 0 0 4px rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 0 2px var(--modal-bg), 0 0 0 4px var(--ring-contrast);
 }
 
 .swatch--rainbow {
@@ -494,6 +771,7 @@ body {
   padding: 0.55rem 1.1rem;
   border: 1px solid var(--border);
   border-radius: 10px;
+  corner-shape: squircle;
   background: var(--surface);
   color: var(--newtab-text);
   font-size: 0.9rem;
@@ -575,6 +853,7 @@ body {
   background: #6b7280;
   border: 1px solid var(--border);
   border-radius: 9px;
+  corner-shape: squircle;
   cursor: pointer;
   color: #fff;
 }
