@@ -1,18 +1,22 @@
-import type {Provider, Suggestions} from '#/newtab/providers/types'
+import type {Provider, SiteContext, Suggestions} from '#/newtab/providers/types'
 import {maskIconProvider} from '#/newtab/providers/maskIcon'
 import {svgFaviconProvider} from '#/newtab/providers/svgFavicon'
 import {wikipediaProvider} from '#/newtab/providers/wikipedia'
 import {webManifestProvider} from '#/newtab/providers/webManifest'
 import {metaColorsProvider} from '#/newtab/providers/metaColors'
+import {svgColorsProvider} from '#/newtab/providers/svgColors'
 
 // Registered providers, in priority order (first = preferred in the UI).
 // Add a new source by dropping a file in this folder and listing it here.
+// svgColorsProvider runs at a later stage so it can read the logos the others
+// found (see `stage` in types.ts).
 export const PROVIDERS: Provider[] = [
   maskIconProvider,
   svgFaviconProvider,
   wikipediaProvider,
   webManifestProvider,
-  metaColorsProvider
+  metaColorsProvider,
+  svgColorsProvider
 ]
 
 export interface GatherDeps {
@@ -54,33 +58,54 @@ export async function gatherSuggestions(
   // empty document.
   const html = await deps.fetchText(url.href)
   const doc = deps.parseHtml(html ?? '')
-  const ctx = {url, doc, fetchText: deps.fetchText}
 
-  const results = await Promise.all(
-    PROVIDERS.map((provider) =>
-      provider.collect(ctx).catch(() => ({}) as Partial<Suggestions>)
+  // Run providers stage by stage: same-stage in parallel, later stages see the
+  // accumulated results so far via ctx.collected.
+  let collected = empty()
+  for (const stage of stagesOf(PROVIDERS)) {
+    const ctx: SiteContext = {url, doc, fetchText: deps.fetchText, collected}
+    const results = await Promise.all(
+      stage.map((provider) =>
+        provider.collect(ctx).catch(() => ({}) as Partial<Suggestions>)
+      )
     )
-  )
+    collected = merge([collected, ...results])
+  }
 
-  return merge(results)
+  return collected
+}
+
+// Providers grouped by ascending stage number (default stage 0).
+function stagesOf(providers: Provider[]): Provider[][] {
+  const byStage = new Map<number, Provider[]>()
+  for (const provider of providers) {
+    const stage = provider.stage ?? 0
+    const group = byStage.get(stage) ?? []
+    group.push(provider)
+    byStage.set(stage, group)
+  }
+  return [...byStage.keys()].sort((a, b) => a - b).map((s) => byStage.get(s)!)
 }
 
 function merge(results: Array<Partial<Suggestions>>): Suggestions {
   const icons = new Map<string, IconOf>()
-  const colors = new Map<string, ColorOf>()
-
   for (const result of results) {
     for (const icon of result.icons || []) {
       const key = icon.svg.replace(/\s+/g, '')
       if (!icons.has(key)) icons.set(key, icon)
     }
-    for (const color of result.colors || []) {
-      const key = color.color.toLowerCase()
-      if (!colors.has(key)) colors.set(key, color)
-    }
   }
+  const colors = dedupeColors(results.flatMap((result) => result.colors || []))
+  return {icons: [...icons.values()], colors}
+}
 
-  return {icons: [...icons.values()], colors: [...colors.values()]}
+function dedupeColors(colors: ColorOf[]): ColorOf[] {
+  const seen = new Map<string, ColorOf>()
+  for (const color of colors) {
+    const key = color.color.toLowerCase()
+    if (!seen.has(key)) seen.set(key, color)
+  }
+  return [...seen.values()]
 }
 
 type IconOf = Suggestions['icons'][number]

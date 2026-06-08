@@ -27,6 +27,12 @@ export interface SiteContext {
   doc: Document
   /** Fetch helper returning response text, or null on any failure. */
   fetchText: (url: string) => Promise<string | null>
+  /**
+   * Suggestions already gathered by earlier-stage providers (merged and
+   * de-duplicated). Empty at stage 0. Lets a later provider build on earlier
+   * output — e.g. derive colors from logos other providers found.
+   */
+  collected: Suggestions
 }
 
 /**
@@ -36,5 +42,11 @@ export interface SiteContext {
  */
 export interface Provider {
   name: string
+  /**
+   * Providers run in ascending stage order; same-stage providers run in
+   * parallel, and a later stage sees earlier stages' results via
+   * `ctx.collected`. Defaults to 0.
+   */
+  stage?: number
   collect: (ctx: SiteContext) => Promise<Partial<Suggestions>>
 }
