@@ -3,7 +3,8 @@ import {DEFAULT_COLOR, DEFAULT_FOREGROUND, DEFAULT_SCALE} from '#/newtab/storage
 import {normalizeUrl, toHex} from '#/newtab/util'
 import {DialLogo} from '#/newtab/DialLogo'
 import {ColorField} from '#/newtab/ColorField'
-import {FG_PALETTE} from '#/newtab/palette'
+import {FG_PALETTE, RAINBOW} from '#/newtab/palette'
+import {extractInlineSvg} from '#/newtab/providers/helpers'
 import {gatherSuggestions} from '#/newtab/providers/registry'
 import type {Suggestions} from '#/newtab/providers/types'
 import type {DialDraft, ModalTarget} from '#/newtab/types'
@@ -36,16 +37,25 @@ export function EditModal({target, onSave, onDelete, onClose}: EditModalProps) {
     dial?.foreground ?? DEFAULT_FOREGROUND
   )
   const [svg, setSvg] = useState(dial?.svg ?? '')
+  const [image, setImage] = useState(dial?.image ?? '')
   const [scale, setScale] = useState(dial?.scale ?? DEFAULT_SCALE)
 
   const [busy, setBusy] = useState(false)
   const [suggestError, setSuggestError] = useState<string | null>(null)
   const [suggestions, setSuggestions] = useState<Suggestions | null>(null)
 
-  // Background swatches come only from colors discovered on the site; the
-  // current value and the custom picker cover everything else.
-  const bgSwatches = dedupeColors(suggestions?.colors.map((c) => c.color) ?? [])
-  const previewRainbow = foreground === 'rainbow'
+  // Colors discovered on the site (incl. those extracted from logos).
+  const discovered = suggestions?.colors.map((c) => c.color) ?? []
+  // Background: just the discovered colors + custom picker.
+  const bgSwatches = dedupeColors(discovered)
+  // Foreground: the basics, then discovered colors (for bicolor lockups), then
+  // rainbow last.
+  const fgSwatches = dedupeColors([
+    ...FG_PALETTE.filter((c) => c !== RAINBOW),
+    ...discovered,
+    RAINBOW
+  ])
+  const previewRainbow = foreground === RAINBOW
 
   const autofill = async () => {
     const target = normalizeUrl(url)
@@ -59,7 +69,7 @@ export function EditModal({target, onSave, onDelete, onClose}: EditModalProps) {
         setSuggestError('No icon or color found on that site.')
       } else {
         // Apply the top suggestion automatically; the chips let you switch.
-        if (!svg.trim() && found.icons[0]) setSvg(found.icons[0].svg)
+        if (!svg.trim() && !image && found.icons[0]) pickSvg(found.icons[0].svg)
         if (found.colors[0]) setColor(found.colors[0].color)
       }
     } catch {
@@ -67,6 +77,35 @@ export function EditModal({target, onSave, onDelete, onClose}: EditModalProps) {
     } finally {
       setBusy(false)
     }
+  }
+
+  // svg and image are mutually exclusive representations of the logo.
+  const pickSvg = (markup: string) => {
+    setSvg(markup)
+    setImage('')
+  }
+  const pickImage = (src: string) => {
+    setImage(src)
+    if (src) setSvg('')
+  }
+
+  const onUpload = (event: Event) => {
+    const input = event.currentTarget as HTMLInputElement
+    const file = input.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    if (file.type === 'image/svg+xml' || /\.svg$/i.test(file.name)) {
+      // Inline SVG files so they stay recolorable.
+      reader.onload = () => {
+        const markup = extractInlineSvg(String(reader.result))
+        if (markup) pickSvg(markup)
+      }
+      reader.readAsText(file)
+    } else {
+      reader.onload = () => pickImage(String(reader.result))
+      reader.readAsDataURL(file)
+    }
+    input.value = '' // allow re-selecting the same file
   }
 
   // Close on Escape.
@@ -84,7 +123,15 @@ export function EditModal({target, onSave, onDelete, onClose}: EditModalProps) {
     const cleanUrl = normalizeUrl(url)
     if (!cleanName || !cleanUrl) return
     onSave(
-      {name: cleanName, url: cleanUrl, color, foreground, svg: svg.trim(), scale},
+      {
+        name: cleanName,
+        url: cleanUrl,
+        color,
+        foreground,
+        svg: svg.trim(),
+        image: image.trim(),
+        scale
+      },
       dial?.id ?? null
     )
   }
@@ -146,7 +193,7 @@ export function EditModal({target, onSave, onDelete, onClose}: EditModalProps) {
                         type="button"
                         class="autofill_icon"
                         title={icon.source}
-                        onClick={() => setSvg(icon.svg)}
+                        onClick={() => pickSvg(icon.svg)}
                         dangerouslySetInnerHTML={{__html: icon.svg}}
                       />
                     ))}
@@ -166,21 +213,31 @@ export function EditModal({target, onSave, onDelete, onClose}: EditModalProps) {
             <ColorField
               label="Foreground color"
               value={foreground}
-              swatches={FG_PALETTE}
+              swatches={fgSwatches}
               onChange={setForeground}
             />
 
-            <label class="modal_field">
-              <span class="modal_label">Logo SVG</span>
-              <textarea
-                class="modal_textarea"
-                rows={5}
-                placeholder="<svg viewBox=&quot;0 0 24 24&quot;>…</svg>"
-                value={svg}
-                spellcheck={false}
-                onInput={(event) => setSvg(event.currentTarget.value)}
-              />
-            </label>
+            <div class="modal_field">
+              <span class="modal_label">Logo</span>
+              <div class="logo_input">
+                <label class="btn logo_upload">
+                  Upload…
+                  <input
+                    class="logo_file"
+                    type="file"
+                    accept="image/*"
+                    onChange={onUpload}
+                  />
+                </label>
+                <input
+                  class="modal_input"
+                  type="url"
+                  placeholder="…or paste an image URL"
+                  value={image.startsWith('data:') ? '' : image}
+                  onInput={(event) => pickImage(event.currentTarget.value.trim())}
+                />
+              </div>
+            </div>
 
             <label class="modal_field">
               <span class="modal_label">Logo size · {Math.round(scale * 100)}%</span>
@@ -203,7 +260,7 @@ export function EditModal({target, onSave, onDelete, onClose}: EditModalProps) {
                 class={`tile${previewRainbow ? ' tile--rainbow' : ''}`}
                 style={`--dial-color: ${color || DEFAULT_COLOR}${previewRainbow ? '' : `; --dial-fg: ${foreground || DEFAULT_FOREGROUND}`}; --logo-scale: ${scale}`}
               >
-                <DialLogo dial={{name, svg}} />
+                <DialLogo dial={{name, svg, image}} />
               </div>
               <span class="cell_label">{name || 'Preview'}</span>
             </div>

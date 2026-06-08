@@ -11,8 +11,13 @@ export interface SpeedDial {
    * before this field existed.
    */
   foreground?: string
-  /** Raw inline SVG markup for the logo, or '' for a monogram fallback. */
+  /** Inline SVG markup for the logo (recolorable). Preferred over `image`. */
   svg: string
+  /**
+   * Image logo as a URL or data: URL, rendered as <img> — used for uploaded
+   * raster files and pasted image URLs. Only applies when `svg` is empty.
+   */
+  image?: string
   /**
    * Logo size multiplier for fine-tuning (1 = default). Applied as a transform
    * scale on the logo. Optional for dials saved before this field existed.

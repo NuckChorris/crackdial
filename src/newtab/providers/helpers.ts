@@ -47,17 +47,21 @@ export function sanitizeSvg(svg: string): string {
     .trim()
 }
 
+/** Pull sanitized <svg>…</svg> markup out of arbitrary text, or null. */
+export function extractInlineSvg(text: string): string | null {
+  const start = text.indexOf('<svg')
+  const end = text.lastIndexOf('</svg>')
+  if (start < 0 || end < 0) return null
+  return sanitizeSvg(text.slice(start, end + '</svg>'.length))
+}
+
 /** Fetch an SVG file and return sanitized <svg>…</svg> markup, or null. */
 export async function fetchSvg(
   fetchText: SiteContext['fetchText'],
   url: string
 ): Promise<string | null> {
   const text = await fetchText(url)
-  if (!text) return null
-  const start = text.indexOf('<svg')
-  const end = text.lastIndexOf('</svg>')
-  if (start < 0 || end < 0) return null
-  return sanitizeSvg(text.slice(start, end + '</svg>'.length))
+  return text ? extractInlineSvg(text) : null
 }
 
 const NON_COLORS = /^(none|transparent|currentcolor|inherit|context-fill|context-stroke)$/i
