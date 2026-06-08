@@ -13,6 +13,11 @@ export interface SpeedDial {
   foreground?: string
   /** Raw inline SVG markup for the logo, or '' for a monogram fallback. */
   svg: string
+  /**
+   * Logo size multiplier for fine-tuning (1 = default). Applied as a transform
+   * scale on the logo. Optional for dials saved before this field existed.
+   */
+  scale?: number
 }
 
 /** The editable fields of a dial (everything except its id). */

@@ -1,5 +1,5 @@
 import {useEffect, useState} from 'preact/hooks'
-import {DEFAULT_COLOR, DEFAULT_FOREGROUND} from '#/newtab/storage'
+import {DEFAULT_COLOR, DEFAULT_FOREGROUND, DEFAULT_SCALE} from '#/newtab/storage'
 import {normalizeUrl, toHex} from '#/newtab/util'
 import {DialLogo} from '#/newtab/DialLogo'
 import {ColorField} from '#/newtab/ColorField'
@@ -36,6 +36,7 @@ export function EditModal({target, onSave, onDelete, onClose}: EditModalProps) {
     dial?.foreground ?? DEFAULT_FOREGROUND
   )
   const [svg, setSvg] = useState(dial?.svg ?? '')
+  const [scale, setScale] = useState(dial?.scale ?? DEFAULT_SCALE)
 
   const [busy, setBusy] = useState(false)
   const [suggestError, setSuggestError] = useState<string | null>(null)
@@ -83,7 +84,7 @@ export function EditModal({target, onSave, onDelete, onClose}: EditModalProps) {
     const cleanUrl = normalizeUrl(url)
     if (!cleanName || !cleanUrl) return
     onSave(
-      {name: cleanName, url: cleanUrl, color, foreground, svg: svg.trim()},
+      {name: cleanName, url: cleanUrl, color, foreground, svg: svg.trim(), scale},
       dial?.id ?? null
     )
   }
@@ -180,6 +181,19 @@ export function EditModal({target, onSave, onDelete, onClose}: EditModalProps) {
                 onInput={(event) => setSvg(event.currentTarget.value)}
               />
             </label>
+
+            <label class="modal_field">
+              <span class="modal_label">Logo size · {Math.round(scale * 100)}%</span>
+              <input
+                class="modal_range"
+                type="range"
+                min="0.5"
+                max="2"
+                step="0.05"
+                value={scale}
+                onInput={(event) => setScale(Number(event.currentTarget.value))}
+              />
+            </label>
           </div>
 
           <div class="modal_previewWrap">
@@ -187,7 +201,7 @@ export function EditModal({target, onSave, onDelete, onClose}: EditModalProps) {
             <div class="cell cell--preview">
               <div
                 class={`tile${previewRainbow ? ' tile--rainbow' : ''}`}
-                style={`--dial-color: ${color || DEFAULT_COLOR}${previewRainbow ? '' : `; --dial-fg: ${foreground || DEFAULT_FOREGROUND}`}`}
+                style={`--dial-color: ${color || DEFAULT_COLOR}${previewRainbow ? '' : `; --dial-fg: ${foreground || DEFAULT_FOREGROUND}`}; --logo-scale: ${scale}`}
               >
                 <DialLogo dial={{name, svg}} />
               </div>

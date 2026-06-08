@@ -9,6 +9,7 @@ const KEY = 'speedDials'
 
 export const DEFAULT_COLOR = '#2b2f3a'
 export const DEFAULT_FOREGROUND = '#ffffff'
+export const DEFAULT_SCALE = 1
 
 const DEFAULT_DIALS: SpeedDial[] = [
   {
