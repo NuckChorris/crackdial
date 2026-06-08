@@ -162,6 +162,16 @@ body {
   fill: currentColor;
 }
 
+/*
+ * Same for stroke — but only elements that explicitly set one. Stroke defaults
+ * to none, so (unlike fill) there's no svg:not([stroke]) catch-all: that would
+ * add an outline to every fill-only icon.
+ */
+.tile:not(.tile--rainbow) .tile_logo svg[stroke]:not([stroke='none']),
+.tile:not(.tile--rainbow) .tile_logo svg [stroke]:not([stroke='none']) {
+  stroke: currentColor;
+}
+
 .tile_monogram {
   font-size: 1.9rem;
   font-weight: 700;
