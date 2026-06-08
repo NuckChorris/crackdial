@@ -2,7 +2,7 @@ import {useEffect, useState} from 'preact/hooks'
 import {DEFAULT_COLOR} from '#/newtab/storage'
 import {normalizeUrl, toHex} from '#/newtab/util'
 import {DialLogo} from '#/newtab/DialLogo'
-import {suggestForSite} from '#/newtab/providers/registry'
+import {gatherSuggestions} from '#/newtab/providers/registry'
 import type {Suggestions} from '#/newtab/providers/types'
 import type {DialDraft, ModalTarget} from '#/newtab/types'
 
@@ -31,7 +31,7 @@ export function EditModal({target, onSave, onDelete, onClose}: EditModalProps) {
     setBusy(true)
     setSuggestError(null)
     try {
-      const found = await suggestForSite(target)
+      const found = await gatherSuggestions(target)
       setSuggestions(found)
       if (found.icons.length === 0 && found.colors.length === 0) {
         setSuggestError('No icon or color found on that site.')
@@ -40,12 +40,8 @@ export function EditModal({target, onSave, onDelete, onClose}: EditModalProps) {
         if (!svg.trim() && found.icons[0]) setSvg(found.icons[0].svg)
         if (found.colors[0]) setColor(found.colors[0].color)
       }
-    } catch (err) {
-      setSuggestError(
-        err instanceof Error && err.message === 'host-permission-denied'
-          ? 'Permission to read that site was denied.'
-          : 'Could not read that site.'
-      )
+    } catch {
+      setSuggestError('Could not read that site.')
     } finally {
       setBusy(false)
     }

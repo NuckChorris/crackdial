@@ -1,5 +1,4 @@
 import type {Provider, Suggestions} from '#/newtab/providers/types'
-import {ensureHostAccess} from '#/newtab/providers/access'
 import {maskIconProvider} from '#/newtab/providers/maskIcon'
 import {svgFaviconProvider} from '#/newtab/providers/svgFavicon'
 import {webManifestProvider} from '#/newtab/providers/webManifest'
@@ -61,13 +60,6 @@ export async function gatherSuggestions(
   )
 
   return merge(results)
-}
-
-/** High-level entry point: request host access, then gather suggestions. */
-export async function suggestForSite(rawUrl: string): Promise<Suggestions> {
-  const granted = await ensureHostAccess(rawUrl)
-  if (!granted) throw new Error('host-permission-denied')
-  return gatherSuggestions(rawUrl)
 }
 
 function merge(results: Array<Partial<Suggestions>>): Suggestions {

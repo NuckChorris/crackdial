@@ -15,14 +15,15 @@
   "chrome_url_overrides": {
     "newtab": "newtab/index.html"
   },
-  "permissions": [
+  "chromium:permissions": [
     "storage"
   ],
-  "chromium:optional_host_permissions": [
-    "*://*/*"
+  "chromium:host_permissions": [
+    "<all_urls>"
   ],
-  "firefox:optional_permissions": [
-    "*://*/*"
+  "firefox:permissions": [
+    "storage",
+    "<all_urls>"
   ],
   "author": "Emma Lejeck"
 }
