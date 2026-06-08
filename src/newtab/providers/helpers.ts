@@ -47,12 +47,43 @@ export function sanitizeSvg(svg: string): string {
     .trim()
 }
 
-/** Pull sanitized <svg>…</svg> markup out of arbitrary text, or null. */
+// Leading numeric value of a presentation attribute (e.g. width="198",
+// width="198px"), but not a percentage — `100%` has no fixed pixel size to
+// derive a viewBox from. The lookahead `(?![\d.%])` requires the number to be
+// complete, so `100%` can't backtrack to a bare `10`.
+function attrLength(tag: string, name: string): number | null {
+  const m = tag.match(new RegExp(`\\b${name}\\s*=\\s*["']?\\s*([\\d.]+)(?![\\d.%])`, 'i'))
+  const n = m ? Number(m[1]) : NaN
+  return n > 0 ? n : null
+}
+
+/**
+ * Give a <svg> a viewBox if it lacks one, derived from its width/height. We
+ * render logos at width/height:100% to fit the tile; without a viewBox there's
+ * no user coordinate system to scale into, so the artwork draws at its native
+ * px coordinates and gets clipped (often to a corner) instead of scaling down.
+ * Leaves the width/height attributes alone — our CSS already overrides them.
+ */
+export function ensureViewBox(svg: string): string {
+  const m = svg.match(/<svg\b[^>]*>/i)
+  if (!m) return svg
+  const tag = m[0]
+  if (/\sviewBox\s*=/i.test(tag)) return svg
+
+  const w = attrLength(tag, 'width')
+  const h = attrLength(tag, 'height')
+  if (w === null || h === null) return svg
+
+  const newTag = tag.replace(/<svg\b/i, `<svg viewBox="0 0 ${w} ${h}"`)
+  return svg.slice(0, m.index) + newTag + svg.slice(m.index! + tag.length)
+}
+
+/** Pull sanitized, viewBox-normalized <svg>…</svg> markup out of text, or null. */
 export function extractInlineSvg(text: string): string | null {
   const start = text.indexOf('<svg')
   const end = text.lastIndexOf('</svg>')
   if (start < 0 || end < 0) return null
-  return sanitizeSvg(text.slice(start, end + '</svg>'.length))
+  return ensureViewBox(sanitizeSvg(text.slice(start, end + '</svg>'.length)))
 }
 
 /** Fetch an SVG file and return sanitized <svg>…</svg> markup, or null. */
