@@ -358,6 +358,11 @@ body {
   background: var(--surface-strong);
 }
 
+.btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
 .btn--primary {
   background: #4f7cff;
   border-color: #4f7cff;
@@ -380,6 +385,72 @@ body {
 
 .btn--danger[hidden] {
   display: none;
+}
+
+/* --------------------------------------------------------------- autofill */
+
+.autofill {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.autofill_btn {
+  width: 100%;
+}
+
+.autofill_error {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #ff9a9a;
+}
+
+.autofill_group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.autofill_chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.autofill_icon {
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 7px;
+  background: #6b7280;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  cursor: pointer;
+  color: #fff;
+}
+
+.autofill_icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.autofill_icon:hover {
+  border-color: #fff;
+}
+
+.autofill_swatch {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  cursor: pointer;
+}
+
+.autofill_swatch:hover {
+  border-color: #fff;
 }
 
 @media (max-width: 520px) {

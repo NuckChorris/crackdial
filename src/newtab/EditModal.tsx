@@ -2,6 +2,8 @@ import {useEffect, useState} from 'preact/hooks'
 import {DEFAULT_COLOR} from '#/newtab/storage'
 import {normalizeUrl, toHex} from '#/newtab/util'
 import {DialLogo} from '#/newtab/DialLogo'
+import {suggestForSite} from '#/newtab/providers/registry'
+import type {Suggestions} from '#/newtab/providers/types'
 import type {DialDraft, ModalTarget} from '#/newtab/types'
 
 interface EditModalProps {
@@ -18,6 +20,36 @@ export function EditModal({target, onSave, onDelete, onClose}: EditModalProps) {
   const [url, setUrl] = useState(dial?.url ?? '')
   const [color, setColor] = useState(toHex(dial?.color))
   const [svg, setSvg] = useState(dial?.svg ?? '')
+
+  const [busy, setBusy] = useState(false)
+  const [suggestError, setSuggestError] = useState<string | null>(null)
+  const [suggestions, setSuggestions] = useState<Suggestions | null>(null)
+
+  const autofill = async () => {
+    const target = normalizeUrl(url)
+    if (!target) return
+    setBusy(true)
+    setSuggestError(null)
+    try {
+      const found = await suggestForSite(target)
+      setSuggestions(found)
+      if (found.icons.length === 0 && found.colors.length === 0) {
+        setSuggestError('No icon or color found on that site.')
+      } else {
+        // Apply the top suggestion automatically; the chips let you switch.
+        if (!svg.trim() && found.icons[0]) setSvg(found.icons[0].svg)
+        if (found.colors[0]) setColor(found.colors[0].color)
+      }
+    } catch (err) {
+      setSuggestError(
+        err instanceof Error && err.message === 'host-permission-denied'
+          ? 'Permission to read that site was denied.'
+          : 'Could not read that site.'
+      )
+    } finally {
+      setBusy(false)
+    }
+  }
 
   // Close on Escape.
   useEffect(() => {
@@ -70,6 +102,55 @@ export function EditModal({target, onSave, onDelete, onClose}: EditModalProps) {
                 onInput={(event) => setUrl(event.currentTarget.value)}
               />
             </label>
+
+            <div class="autofill">
+              <button
+                type="button"
+                class="btn autofill_btn"
+                disabled={!normalizeUrl(url) || busy}
+                onClick={autofill}
+              >
+                {busy ? 'Reading site…' : '✨ Auto-fill from site'}
+              </button>
+
+              {suggestError && <p class="autofill_error">{suggestError}</p>}
+
+              {suggestions && suggestions.icons.length > 0 && (
+                <div class="autofill_group">
+                  <span class="modal_label">Suggested icons</span>
+                  <div class="autofill_chips">
+                    {suggestions.icons.map((icon, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        class="autofill_icon"
+                        title={icon.source}
+                        onClick={() => setSvg(icon.svg)}
+                        dangerouslySetInnerHTML={{__html: icon.svg}}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {suggestions && suggestions.colors.length > 0 && (
+                <div class="autofill_group">
+                  <span class="modal_label">Suggested colors</span>
+                  <div class="autofill_chips">
+                    {suggestions.colors.map((suggestion, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        class="autofill_swatch"
+                        style={`background:${suggestion.color}`}
+                        title={`${suggestion.color} · ${suggestion.source}`}
+                        onClick={() => setColor(suggestion.color)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
 
             <label class="modal_field">
               <span class="modal_label">Background color</span>

@@ -18,5 +18,11 @@
   "permissions": [
     "storage"
   ],
-  "author": "Your Name"
+  "chromium:optional_host_permissions": [
+    "*://*/*"
+  ],
+  "firefox:optional_permissions": [
+    "*://*/*"
+  ],
+  "author": "Emma Lejeck"
 }
