@@ -1,48 +1,53 @@
 import {useRef} from 'preact/hooks'
 import {PlusIcon} from '#/newtab/icons'
 import {toHex} from '#/newtab/util'
+import {RAINBOW} from '#/newtab/palette'
 
 interface ColorFieldProps {
   label: string
   value: string
-  /** Suggested swatches to show as circles, in order. */
+  /** Suggested swatches to show as circles, in order. May include RAINBOW. */
   swatches: string[]
-  onChange: (color: string) => void
+  onChange: (value: string) => void
 }
 
-// A row of selectable swatch circles followed by an "Other" (+) that opens the
-// native color picker. When the value isn't one of the swatches, the Other
-// circle shows the custom color and is marked selected.
+// A row of selectable swatch circles ending in an "Other" (+) that opens the
+// native picker — ( ) ( ) (+). The current value is shown as its own swatch
+// when it isn't already one of the provided swatches.
 export function ColorField({label, value, swatches, onChange}: ColorFieldProps) {
   const inputRef = useRef<HTMLInputElement>(null)
-  const current = value.toLowerCase()
-  const isCustom = !swatches.some((c) => c.toLowerCase() === current)
+  const lower = value.toLowerCase()
+  const known = swatches.some((s) => s.toLowerCase() === lower)
+  const showCurrent = !known && value !== RAINBOW
+
+  const openPicker = () => inputRef.current?.click()
 
   return (
     <div class="colorfield">
       <span class="modal_label">{label}</span>
       <div class="swatches">
         {swatches.map((swatch) => (
-          <button
+          <Swatch
             key={swatch}
-            type="button"
-            class={`swatch${swatch.toLowerCase() === current ? ' swatch--on' : ''}`}
-            style={`--swatch:${swatch}`}
-            title={swatch}
-            aria-label={`${label}: ${swatch}`}
+            swatch={swatch}
+            selected={swatch.toLowerCase() === lower}
+            label={label}
             onClick={() => onChange(swatch)}
           />
         ))}
 
+        {showCurrent && (
+          <Swatch swatch={value} selected label={label} onClick={openPicker} />
+        )}
+
         <button
           type="button"
-          class={`swatch swatch--other${isCustom ? ' swatch--on' : ''}`}
-          style={isCustom ? `--swatch:${value}` : undefined}
+          class="swatch swatch--other"
           title="Custom color…"
           aria-label={`${label}: custom color`}
-          onClick={() => inputRef.current?.click()}
+          onClick={openPicker}
         >
-          {!isCustom && <PlusIcon />}
+          <PlusIcon />
         </button>
 
         <input
@@ -56,5 +61,26 @@ export function ColorField({label, value, swatches, onChange}: ColorFieldProps) 
         />
       </div>
     </div>
+  )
+}
+
+interface SwatchProps {
+  swatch: string
+  selected: boolean
+  label: string
+  onClick: () => void
+}
+
+function Swatch({swatch, selected, label, onClick}: SwatchProps) {
+  const rainbow = swatch === RAINBOW
+  return (
+    <button
+      type="button"
+      class={`swatch${rainbow ? ' swatch--rainbow' : ''}${selected ? ' swatch--on' : ''}`}
+      style={rainbow ? undefined : `--swatch:${swatch}`}
+      title={rainbow ? 'Rainbow' : swatch}
+      aria-label={`${label}: ${rainbow ? 'rainbow' : swatch}`}
+      onClick={onClick}
+    />
   )
 }

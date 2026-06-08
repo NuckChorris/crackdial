@@ -156,6 +156,24 @@ body {
   line-height: 1;
 }
 
+/* Rainbow foreground: gradient monogram, and SVG colors left untouched. */
+.tile--rainbow .tile_monogram {
+  background: linear-gradient(
+    90deg,
+    #ff4b4b,
+    #ff8a00,
+    #ffe600,
+    #00d26a,
+    #00a3ff,
+    #b14bff,
+    #ff4bd8
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
 .tile--add {
   background: transparent;
   border: 2px dashed var(--border);
@@ -345,6 +363,20 @@ body {
   box-shadow: 0 0 0 2px var(--modal-bg), 0 0 0 4px rgba(255, 255, 255, 0.9);
 }
 
+.swatch--rainbow {
+  background: conic-gradient(
+    from 0deg,
+    #ff4b4b,
+    #ff8a00,
+    #ffe600,
+    #00d26a,
+    #00a3ff,
+    #b14bff,
+    #ff4bd8,
+    #ff4b4b
+  );
+}
+
 .swatch--other {
   display: flex;
   align-items: center;
@@ -352,11 +384,6 @@ body {
   background: var(--surface);
   color: var(--newtab-muted);
   box-shadow: inset 0 0 0 1px var(--border);
-}
-
-.swatch--other.swatch--on {
-  background: var(--swatch);
-  box-shadow: 0 0 0 2px var(--modal-bg), 0 0 0 4px rgba(255, 255, 255, 0.9);
 }
 
 .swatch--other svg {

@@ -15,6 +15,9 @@ function DialCell({dial, onEdit}: DialCellProps) {
     if (url) window.location.href = url
   }
 
+  const fg = dial.foreground || DEFAULT_FOREGROUND
+  const rainbow = fg === 'rainbow'
+
   return (
     <div
       class="cell"
@@ -29,8 +32,8 @@ function DialCell({dial, onEdit}: DialCellProps) {
       }}
     >
       <div
-        class="tile"
-        style={`--dial-color: ${dial.color || DEFAULT_COLOR}; --dial-fg: ${dial.foreground || DEFAULT_FOREGROUND}`}
+        class={`tile${rainbow ? ' tile--rainbow' : ''}`}
+        style={`--dial-color: ${dial.color || DEFAULT_COLOR}${rainbow ? '' : `; --dial-fg: ${fg}`}`}
       >
         <button
           class="tile_edit"

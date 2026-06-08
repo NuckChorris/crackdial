@@ -3,7 +3,7 @@ import {DEFAULT_COLOR, DEFAULT_FOREGROUND} from '#/newtab/storage'
 import {normalizeUrl, toHex} from '#/newtab/util'
 import {DialLogo} from '#/newtab/DialLogo'
 import {ColorField} from '#/newtab/ColorField'
-import {BG_PALETTE, FG_PALETTE} from '#/newtab/palette'
+import {FG_PALETTE} from '#/newtab/palette'
 import {gatherSuggestions} from '#/newtab/providers/registry'
 import type {Suggestions} from '#/newtab/providers/types'
 import type {DialDraft, ModalTarget} from '#/newtab/types'
@@ -41,12 +41,10 @@ export function EditModal({target, onSave, onDelete, onClose}: EditModalProps) {
   const [suggestError, setSuggestError] = useState<string | null>(null)
   const [suggestions, setSuggestions] = useState<Suggestions | null>(null)
 
-  // Background swatches: colors discovered from the site (if any) first, then
-  // the default palette.
-  const bgSwatches = dedupeColors([
-    ...(suggestions?.colors.map((c) => c.color) ?? []),
-    ...BG_PALETTE
-  ])
+  // Background swatches come only from colors discovered on the site; the
+  // current value and the custom picker cover everything else.
+  const bgSwatches = dedupeColors(suggestions?.colors.map((c) => c.color) ?? [])
+  const previewRainbow = foreground === 'rainbow'
 
   const autofill = async () => {
     const target = normalizeUrl(url)
@@ -165,7 +163,7 @@ export function EditModal({target, onSave, onDelete, onClose}: EditModalProps) {
             />
 
             <ColorField
-              label="Text color"
+              label="Foreground color"
               value={foreground}
               swatches={FG_PALETTE}
               onChange={setForeground}
@@ -188,8 +186,8 @@ export function EditModal({target, onSave, onDelete, onClose}: EditModalProps) {
             <span class="modal_label">Preview</span>
             <div class="cell cell--preview">
               <div
-                class="tile"
-                style={`--dial-color: ${color || DEFAULT_COLOR}; --dial-fg: ${foreground || DEFAULT_FOREGROUND}`}
+                class={`tile${previewRainbow ? ' tile--rainbow' : ''}`}
+                style={`--dial-color: ${color || DEFAULT_COLOR}${previewRainbow ? '' : `; --dial-fg: ${foreground || DEFAULT_FOREGROUND}`}`}
               >
                 <DialLogo dial={{name, svg}} />
               </div>

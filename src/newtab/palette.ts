@@ -1,22 +1,15 @@
-// Default swatch palettes offered in the color pickers. Lowercase #rrggbb so
-// they compare cleanly against stored/picked values.
+// Foreground swatch options. Lowercase #rrggbb so they compare cleanly against
+// stored/picked values; `RAINBOW` is a special non-color value handled by the
+// tile (gradient monogram, no color override).
+// Background has no preset palette — its swatches come from the site or the
+// custom picker.
 
-export const BG_PALETTE = [
-  '#2b2f3a', // slate (default)
-  '#0a0c10', // near-black
-  '#ef4444', // red
-  '#f97316', // orange
-  '#eab308', // amber
-  '#22c55e', // green
-  '#06b6d4', // cyan
-  '#3b82f6', // blue
-  '#8b5cf6', // violet
-  '#ec4899' // pink
-]
+export const RAINBOW = 'rainbow'
 
 export const FG_PALETTE = [
   '#ffffff', // white
   '#000000', // black
   '#e5e7eb', // light gray
-  '#9ca3af' // gray
+  '#9ca3af', // gray
+  RAINBOW
 ]
