@@ -1,6 +1,7 @@
 import type {Provider, Suggestions} from '#/newtab/providers/types'
 import {maskIconProvider} from '#/newtab/providers/maskIcon'
 import {svgFaviconProvider} from '#/newtab/providers/svgFavicon'
+import {wikipediaProvider} from '#/newtab/providers/wikipedia'
 import {webManifestProvider} from '#/newtab/providers/webManifest'
 import {metaColorsProvider} from '#/newtab/providers/metaColors'
 
@@ -9,6 +10,7 @@ import {metaColorsProvider} from '#/newtab/providers/metaColors'
 export const PROVIDERS: Provider[] = [
   maskIconProvider,
   svgFaviconProvider,
+  wikipediaProvider,
   webManifestProvider,
   metaColorsProvider
 ]
@@ -47,10 +49,11 @@ export async function gatherSuggestions(
     return empty()
   }
 
+  // Don't abort if the homepage can't be fetched: URL-only providers (e.g.
+  // Wikipedia) still work, and document-based ones just find nothing in an
+  // empty document.
   const html = await deps.fetchText(url.href)
-  if (!html) return empty()
-
-  const doc = deps.parseHtml(html)
+  const doc = deps.parseHtml(html ?? '')
   const ctx = {url, doc, fetchText: deps.fetchText}
 
   const results = await Promise.all(
