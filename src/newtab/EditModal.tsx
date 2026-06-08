@@ -4,7 +4,8 @@ import {normalizeUrl, toHex} from '#/newtab/util'
 import {DialLogo} from '#/newtab/DialLogo'
 import {ColorField} from '#/newtab/ColorField'
 import {FG_PALETTE, RAINBOW} from '#/newtab/palette'
-import {extractInlineSvg} from '#/newtab/providers/helpers'
+import {fileToLogo, loadLogoFromUrl} from '#/newtab/providers/helpers'
+import type {LogoResult} from '#/newtab/providers/helpers'
 import {gatherSuggestions} from '#/newtab/providers/registry'
 import type {Suggestions} from '#/newtab/providers/types'
 import type {DialDraft, ModalTarget} from '#/newtab/types'
@@ -43,6 +44,10 @@ export function EditModal({target, onSave, onDelete, onClose}: EditModalProps) {
   const [busy, setBusy] = useState(false)
   const [suggestError, setSuggestError] = useState<string | null>(null)
   const [suggestions, setSuggestions] = useState<Suggestions | null>(null)
+
+  const [logoUrl, setLogoUrl] = useState('')
+  const [logoBusy, setLogoBusy] = useState(false)
+  const [logoError, setLogoError] = useState<string | null>(null)
 
   // Colors discovered on the site (incl. those extracted from logos).
   const discovered = suggestions?.colors.map((c) => c.color) ?? []
@@ -84,28 +89,68 @@ export function EditModal({target, onSave, onDelete, onClose}: EditModalProps) {
     setSvg(markup)
     setImage('')
   }
-  const pickImage = (src: string) => {
-    setImage(src)
-    if (src) setSvg('')
+
+  // Merge newly-found colors into the suggestions so they appear as swatches.
+  const addColors = (hexes: string[]) => {
+    if (!hexes.length) return
+    setSuggestions((prev) => {
+      const merged = [
+        ...(prev?.colors ?? []),
+        ...hexes.map((color) => ({color, source: 'logo'}))
+      ]
+      const seen = new Set<string>()
+      const colors = merged.filter((c) => {
+        const key = c.color.toLowerCase()
+        if (seen.has(key)) return false
+        seen.add(key)
+        return true
+      })
+      return {icons: prev?.icons ?? [], colors}
+    })
   }
 
-  const onUpload = (event: Event) => {
+  const applyLogo = (logo: LogoResult | null) => {
+    if (!logo) {
+      setLogoError('Couldn’t load that image.')
+      return
+    }
+    if (logo.svg) pickSvg(logo.svg)
+    else if (logo.image) {
+      setImage(logo.image)
+      setSvg('')
+    }
+    addColors(logo.colors)
+  }
+
+  const onUpload = async (event: Event) => {
     const input = event.currentTarget as HTMLInputElement
     const file = input.files?.[0]
-    if (!file) return
-    const reader = new FileReader()
-    if (file.type === 'image/svg+xml' || /\.svg$/i.test(file.name)) {
-      // Inline SVG files so they stay recolorable.
-      reader.onload = () => {
-        const markup = extractInlineSvg(String(reader.result))
-        if (markup) pickSvg(markup)
-      }
-      reader.readAsText(file)
-    } else {
-      reader.onload = () => pickImage(String(reader.result))
-      reader.readAsDataURL(file)
-    }
     input.value = '' // allow re-selecting the same file
+    if (!file) return
+    setLogoBusy(true)
+    setLogoError(null)
+    try {
+      applyLogo(await fileToLogo(file))
+    } catch {
+      setLogoError('Couldn’t load that file.')
+    } finally {
+      setLogoBusy(false)
+    }
+  }
+
+  // Download, store, and color-extract the pasted URL (no hotlinking).
+  const onLoadUrl = async () => {
+    const target = logoUrl.trim()
+    if (!target) return
+    setLogoBusy(true)
+    setLogoError(null)
+    try {
+      applyLogo(await loadLogoFromUrl(target))
+    } catch {
+      setLogoError('Couldn’t load that image.')
+    } finally {
+      setLogoBusy(false)
+    }
   }
 
   // Close on Escape.
@@ -218,7 +263,7 @@ export function EditModal({target, onSave, onDelete, onClose}: EditModalProps) {
             />
 
             <div class="modal_field">
-              <span class="modal_label">Logo</span>
+              <span class="modal_label">Logo{logoBusy ? ' · loading…' : ''}</span>
               <div class="logo_input">
                 <label class="btn logo_upload">
                   Upload…
@@ -233,10 +278,19 @@ export function EditModal({target, onSave, onDelete, onClose}: EditModalProps) {
                   class="modal_input"
                   type="url"
                   placeholder="…or paste an image URL"
-                  value={image.startsWith('data:') ? '' : image}
-                  onInput={(event) => pickImage(event.currentTarget.value.trim())}
+                  value={logoUrl}
+                  onInput={(event) => setLogoUrl(event.currentTarget.value)}
+                  onChange={onLoadUrl}
+                  onKeyDown={(event) => {
+                    // Enter loads the URL instead of submitting (saving) the form.
+                    if (event.key === 'Enter') {
+                      event.preventDefault()
+                      onLoadUrl()
+                    }
+                  }}
                 />
               </div>
+              {logoError && <p class="autofill_error">{logoError}</p>}
             </div>
 
             <label class="modal_field">
