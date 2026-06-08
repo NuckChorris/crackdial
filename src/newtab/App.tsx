@@ -1,6 +1,6 @@
 import {useCallback, useEffect, useState} from 'preact/hooks'
 import {dialsFromJson, dialsToJson, loadDials, saveDials} from '#/newtab/storage'
-import {newId} from '#/newtab/util'
+import {arrayMove, newId} from '#/newtab/util'
 import {Search} from '#/newtab/Search'
 import {SpeedDialGrid} from '#/newtab/SpeedDialGrid'
 import {EditControls} from '#/newtab/EditControls'
@@ -48,6 +48,14 @@ export function App() {
     URL.revokeObjectURL(url)
   }
 
+  const handleReorder = useCallback((from: number, to: number) => {
+    setDials((prev) => {
+      const next = arrayMove(prev, from, to)
+      saveDials(next)
+      return next
+    })
+  }, [])
+
   const handleImport = useCallback(async (file: File) => {
     let text: string
     try {
@@ -76,6 +84,7 @@ export function App() {
           const dial = dials.find((entry) => entry.id === id)
           if (dial) setModal({mode: 'edit', dial})
         }}
+        onReorder={handleReorder}
       />
       <EditControls
         editMode={editMode}

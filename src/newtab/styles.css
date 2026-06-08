@@ -355,6 +355,35 @@ body {
   }
 }
 
+/* ---------------------------------------------------------- drag to reorder */
+
+.grid--edit .cell:not(.cell--add) {
+  cursor: grab;
+}
+
+.cell--chosen {
+  cursor: grabbing;
+}
+
+/* The placeholder slot, the chosen item, and the floating clone shouldn't
+   wiggle while a drag is in progress. */
+.cell--ghost .tile,
+.cell--chosen .tile,
+.cell--drag .tile {
+  animation: none;
+}
+
+/* Placeholder left in the grid showing where the tile will land. */
+.cell--ghost {
+  opacity: 0.35;
+}
+
+/* The clone that follows the pointer — picked-up look. */
+.cell--drag .tile {
+  transform: scale(1.05);
+  box-shadow: 0 20px 44px var(--shadow-strong);
+}
+
 .tile_logo {
   display: flex;
   align-items: center;

@@ -16,6 +16,14 @@ export function newId(): string {
   return `dial-${Math.floor(performance.now() * 1000)}`
 }
 
+/** Return a copy of `list` with the item at index `from` moved to index `to`. */
+export function arrayMove<T>(list: T[], from: number, to: number): T[] {
+  const next = list.slice()
+  const [moved] = next.splice(from, 1)
+  next.splice(to, 0, moved)
+  return next
+}
+
 // <input type="color"> only accepts #rrggbb; fall back when a stored value
 // (or absent value) doesn't match.
 export function toHex(color: string | undefined): string {

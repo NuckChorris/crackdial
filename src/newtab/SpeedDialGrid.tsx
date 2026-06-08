@@ -1,3 +1,5 @@
+import {useEffect, useRef} from 'preact/hooks'
+import Sortable from 'sortablejs'
 import {DEFAULT_COLOR, DEFAULT_FOREGROUND, DEFAULT_SCALE} from '#/newtab/storage'
 import {normalizeUrl} from '#/newtab/util'
 import {DialLogo} from '#/newtab/DialLogo'
@@ -38,6 +40,7 @@ function DialCell({dial, editMode, onEdit}: DialCellProps) {
   return (
     <div
       class="cell"
+      data-id={dial.id}
       tabindex={0}
       title={editMode ? `Edit ${dial.name}` : dial.name}
       onClick={activate}
@@ -80,7 +83,7 @@ interface AddCellProps {
 function AddCell({onAdd}: AddCellProps) {
   return (
     <div
-      class="cell"
+      class="cell cell--add"
       tabindex={0}
       title="Add a site"
       onClick={onAdd}
@@ -106,11 +109,54 @@ interface SpeedDialGridProps {
   editMode: boolean
   onAdd: () => void
   onEdit: (id: string) => void
+  onReorder: (from: number, to: number) => void
 }
 
-export function SpeedDialGrid({dials, editMode, onAdd, onEdit}: SpeedDialGridProps) {
+export function SpeedDialGrid({
+  dials,
+  editMode,
+  onAdd,
+  onEdit,
+  onReorder
+}: SpeedDialGridProps) {
+  const gridRef = useRef<HTMLDivElement>(null)
+
+  // Drag-to-reorder, edit mode only. SortableJS mutates the DOM on drop; we undo
+  // that move and drive the reorder through state instead, so Preact stays the
+  // single source of truth (otherwise its next render fights Sortable's DOM).
+  useEffect(() => {
+    const el = gridRef.current
+    if (!editMode || !el) return
+
+    const sortable = Sortable.create(el, {
+      animation: 150,
+      forceFallback: true, // consistent drag visuals + touch support
+      draggable: '.cell',
+      filter: '.cell--add', // the "Add a site" tile isn't draggable
+      ghostClass: 'cell--ghost',
+      chosenClass: 'cell--chosen',
+      dragClass: 'cell--drag',
+      // Don't let a dragged tile land relative to the (pinned) add tile.
+      onMove: (evt) => !evt.related.classList.contains('cell--add'),
+      onEnd: (evt) => {
+        const {oldIndex, newIndex, item, from} = evt
+        if (oldIndex == null || newIndex == null || oldIndex === newIndex) return
+        // Revert Sortable's DOM move (put `item` back at oldIndex), then let the
+        // state update re-render the cells in the new order.
+        const ref: Element | null =
+          (newIndex > oldIndex
+            ? from.children[oldIndex]
+            : from.children[oldIndex + 1]) ?? null
+        from.insertBefore(item, ref)
+        onReorder(oldIndex, newIndex)
+      }
+    })
+
+    return () => sortable.destroy()
+  }, [editMode, onReorder])
+
   return (
-    <div class={`grid${editMode ? ' grid--edit' : ''}`}>
+    <div ref={gridRef} class={`grid${editMode ? ' grid--edit' : ''}`}>
       {dials.map((dial) => (
         <DialCell key={dial.id} dial={dial} editMode={editMode} onEdit={onEdit} />
       ))}

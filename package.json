@@ -24,10 +24,12 @@
     "build:edge": "extension build --browser edge"
   },
   "dependencies": {
-    "preact": "^10.29.2"
+    "preact": "^10.29.2",
+    "sortablejs": "^1.15.7"
   },
   "devDependencies": {
     "@types/chrome": "^0.1.43",
+    "@types/sortablejs": "^1.15.9",
     "extension": "^3.18.2",
     "typescript": "^6.0.3"
   },
