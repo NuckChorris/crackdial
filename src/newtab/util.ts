@@ -1,6 +1,8 @@
 import {DEFAULT_COLOR} from '#/newtab/storage'
 
-export const KAGI_SEARCH = 'https://kagi.com/search?q='
+export const KAGI_ORIGIN = 'https://kagi.com'
+export const KAGI_SEARCH = `${KAGI_ORIGIN}/search?q=`
+export const KAGI_AUTOSUGGEST = `${KAGI_ORIGIN}/autosuggest?q=`
 
 // Accept bare hosts ("youtube.com") and full URLs alike.
 export function normalizeUrl(url: string): string {
