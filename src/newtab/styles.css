@@ -98,7 +98,9 @@ body {
 .grid {
   width: min(880px, 92vw);
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  /* minmax(0, 1fr), not 1fr: keeps columns equal regardless of logo size
+     (1fr's auto minimum would let intrinsic SVG dimensions widen a column). */
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 1.25rem;
 }
 
@@ -110,6 +112,7 @@ body {
   cursor: pointer;
   border-radius: 18px;
   outline: none;
+  min-width: 0;
 }
 
 .cell:focus-visible {
@@ -123,6 +126,9 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  /* Keep the aspect ratio even when a logo's intrinsic size is large. */
+  min-width: 0;
+  overflow: hidden;
   background: var(--dial-color, #2b2f3a);
   /* Foreground tint: drives the monogram and any currentColor SVGs. */
   color: var(--dial-fg, #fff);
@@ -145,6 +151,10 @@ body {
      square marks fill the height. */
   width: 80%;
   height: 56%;
+  /* Allow shrinking below the SVG's intrinsic size (flex default is auto),
+     otherwise a large logo would stretch the tile out of shape. */
+  min-width: 0;
+  min-height: 0;
 }
 
 .tile_logo svg {
@@ -263,7 +273,7 @@ body {
 
 @media (max-width: 640px) {
   .grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .page {
     padding-top: 10vh;
