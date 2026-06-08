@@ -149,6 +149,19 @@ body {
   height: 100%;
 }
 
+/*
+ * Non-rainbow foreground recolors the logo: every filled element renders in
+ * currentColor (the foreground). `fill="none"` is excluded so stroke-only line
+ * icons keep their shape; rainbow tiles are excluded so their colors survive.
+ * Covers the svg root (so inheriting/default-fill children recolor) and any
+ * descendant that sets its own fill.
+ */
+.tile:not(.tile--rainbow) .tile_logo svg:not([fill]),
+.tile:not(.tile--rainbow) .tile_logo svg[fill]:not([fill='none']),
+.tile:not(.tile--rainbow) .tile_logo svg [fill]:not([fill='none']) {
+  fill: currentColor;
+}
+
 .tile_monogram {
   font-size: 1.9rem;
   font-weight: 700;
