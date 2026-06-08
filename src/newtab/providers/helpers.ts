@@ -136,88 +136,23 @@ function byBrandThenFrequency(
   return neutral !== 0 ? neutral : b[1] - a[1]
 }
 
-/**
- * Sample dominant colors from a raster image (data/URL src) via canvas.
- * Quantizes to 16-steps, skips transparent pixels, chromatic-first by frequency.
- * The src must be same-origin or a data: URL, else the canvas taints.
- */
-export async function colorsFromImage(src: string): Promise<string[]> {
-  const img = new Image()
-  try {
-    await new Promise<void>((resolve, reject) => {
-      img.onload = () => resolve()
-      img.onerror = () => reject(new Error('image load failed'))
-      img.src = src
-    })
-  } catch {
-    return []
-  }
-
-  const size = 48
-  const canvas = document.createElement('canvas')
-  canvas.width = size
-  canvas.height = size
-  const ctx = canvas.getContext('2d')
-  if (!ctx) return []
-  ctx.drawImage(img, 0, 0, size, size)
-
-  let pixels: Uint8ClampedArray
-  try {
-    pixels = ctx.getImageData(0, 0, size, size).data
-  } catch {
-    return [] // tainted canvas
-  }
-
-  const counts = new Map<string, number>()
-  for (let i = 0; i < pixels.length; i += 4) {
-    if (pixels[i + 3] < 128) continue // transparent
-    const hex =
-      '#' +
-      [pixels[i] & 0xf0, pixels[i + 1] & 0xf0, pixels[i + 2] & 0xf0]
-        .map((n) => n.toString(16).padStart(2, '0'))
-        .join('')
-    counts.set(hex, (counts.get(hex) ?? 0) + 1)
-  }
-
-  return [...counts.entries()].sort(byBrandThenFrequency).map(([hex]) => hex).slice(0, 8)
-}
-
-/** A logo loaded from a file or URL: inline SVG or an image data URL, + colors. */
+/** An SVG logo loaded from a file or URL, with colors extracted from it. */
 export interface LogoResult {
-  svg?: string
-  image?: string
+  svg: string
   colors: string[]
 }
 
-function blobToDataUrl(blob: Blob): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => resolve(String(reader.result))
-    reader.onerror = () => reject(reader.error)
-    reader.readAsDataURL(blob)
-  })
-}
-
-async function blobToLogo(blob: Blob, looksSvg: boolean): Promise<LogoResult | null> {
-  if (looksSvg || blob.type.includes('svg')) {
-    const svg = extractInlineSvg(await blob.text())
-    if (svg) return {svg, colors: colorsFromSvg(svg)}
-  }
-  if (blob.type.startsWith('image/')) {
-    const image = await blobToDataUrl(blob)
-    return {image, colors: await colorsFromImage(image)}
-  }
-  // Last resort: maybe SVG served without a helpful content type.
-  const svg = extractInlineSvg(await blob.text())
+function toLogo(text: string): LogoResult | null {
+  const svg = extractInlineSvg(text)
   return svg ? {svg, colors: colorsFromSvg(svg)} : null
 }
 
-/** Read an uploaded file into a stored, color-extracted logo. */
+/** Read an uploaded SVG file into a stored, color-extracted logo. */
 export async function fileToLogo(file: File): Promise<LogoResult | null> {
-  return blobToLogo(file, /\.svg$/i.test(file.name))
+  return toLogo(await file.text())
 }
 
-/** Download a URL into a stored, color-extracted logo (no hotlinking). */
+/** Download an SVG URL into a stored, color-extracted logo (no hotlinking). */
 export async function loadLogoFromUrl(url: string): Promise<LogoResult | null> {
   let res: Response
   try {
@@ -226,5 +161,5 @@ export async function loadLogoFromUrl(url: string): Promise<LogoResult | null> {
     return null
   }
   if (!res.ok) return null
-  return blobToLogo(await res.blob(), /\.svg(\?|#|$)/i.test(url))
+  return toLogo(await res.text())
 }

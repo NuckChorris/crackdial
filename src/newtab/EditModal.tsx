@@ -38,7 +38,6 @@ export function EditModal({target, onSave, onDelete, onClose}: EditModalProps) {
     dial?.foreground ?? DEFAULT_FOREGROUND
   )
   const [svg, setSvg] = useState(dial?.svg ?? '')
-  const [image, setImage] = useState(dial?.image ?? '')
   const [scale, setScale] = useState(dial?.scale ?? DEFAULT_SCALE)
 
   const [busy, setBusy] = useState(false)
@@ -74,7 +73,7 @@ export function EditModal({target, onSave, onDelete, onClose}: EditModalProps) {
         setSuggestError('No icon or color found on that site.')
       } else {
         // Apply the top suggestion automatically; the chips let you switch.
-        if (!svg.trim() && !image && found.icons[0]) pickSvg(found.icons[0].svg)
+        if (!svg.trim() && found.icons[0]) pickSvg(found.icons[0].svg)
         if (found.colors[0]) setColor(found.colors[0].color)
       }
     } catch {
@@ -84,11 +83,7 @@ export function EditModal({target, onSave, onDelete, onClose}: EditModalProps) {
     }
   }
 
-  // svg and image are mutually exclusive representations of the logo.
-  const pickSvg = (markup: string) => {
-    setSvg(markup)
-    setImage('')
-  }
+  const pickSvg = (markup: string) => setSvg(markup)
 
   // Merge newly-found colors into the suggestions so they appear as swatches.
   const addColors = (hexes: string[]) => {
@@ -109,16 +104,8 @@ export function EditModal({target, onSave, onDelete, onClose}: EditModalProps) {
     })
   }
 
-  const applyLogo = (logo: LogoResult | null) => {
-    if (!logo) {
-      setLogoError('Couldn’t load that image.')
-      return
-    }
-    if (logo.svg) pickSvg(logo.svg)
-    else if (logo.image) {
-      setImage(logo.image)
-      setSvg('')
-    }
+  const applyLogo = (logo: LogoResult) => {
+    pickSvg(logo.svg)
     addColors(logo.colors)
   }
 
@@ -130,24 +117,28 @@ export function EditModal({target, onSave, onDelete, onClose}: EditModalProps) {
     setLogoBusy(true)
     setLogoError(null)
     try {
-      applyLogo(await fileToLogo(file))
+      const logo = await fileToLogo(file)
+      if (logo) applyLogo(logo)
+      else setLogoError('That file isn’t an SVG.')
     } catch {
-      setLogoError('Couldn’t load that file.')
+      setLogoError('Couldn’t read that file.')
     } finally {
       setLogoBusy(false)
     }
   }
 
-  // Download, store, and color-extract the pasted URL (no hotlinking).
+  // Download, store, and color-extract the pasted SVG URL (no hotlinking).
   const onLoadUrl = async () => {
     const target = logoUrl.trim()
     if (!target) return
     setLogoBusy(true)
     setLogoError(null)
     try {
-      applyLogo(await loadLogoFromUrl(target))
+      const logo = await loadLogoFromUrl(target)
+      if (logo) applyLogo(logo)
+      else setLogoError('Couldn’t load an SVG from that URL.')
     } catch {
-      setLogoError('Couldn’t load that image.')
+      setLogoError('Couldn’t load an SVG from that URL.')
     } finally {
       setLogoBusy(false)
     }
@@ -168,15 +159,7 @@ export function EditModal({target, onSave, onDelete, onClose}: EditModalProps) {
     const cleanUrl = normalizeUrl(url)
     if (!cleanName || !cleanUrl) return
     onSave(
-      {
-        name: cleanName,
-        url: cleanUrl,
-        color,
-        foreground,
-        svg: svg.trim(),
-        image: image.trim(),
-        scale
-      },
+      {name: cleanName, url: cleanUrl, color, foreground, svg: svg.trim(), scale},
       dial?.id ?? null
     )
   }
@@ -266,18 +249,18 @@ export function EditModal({target, onSave, onDelete, onClose}: EditModalProps) {
               <span class="modal_label">Logo{logoBusy ? ' · loading…' : ''}</span>
               <div class="logo_input">
                 <label class="btn logo_upload">
-                  Upload…
+                  Upload SVG…
                   <input
                     class="logo_file"
                     type="file"
-                    accept="image/*"
+                    accept=".svg,image/svg+xml"
                     onChange={onUpload}
                   />
                 </label>
                 <input
                   class="modal_input"
                   type="url"
-                  placeholder="…or paste an image URL"
+                  placeholder="…or paste an SVG URL"
                   value={logoUrl}
                   onInput={(event) => setLogoUrl(event.currentTarget.value)}
                   onChange={onLoadUrl}
@@ -314,7 +297,7 @@ export function EditModal({target, onSave, onDelete, onClose}: EditModalProps) {
                 class={`tile${previewRainbow ? ' tile--rainbow' : ''}`}
                 style={`--dial-color: ${color || DEFAULT_COLOR}${previewRainbow ? '' : `; --dial-fg: ${foreground || DEFAULT_FOREGROUND}`}; --logo-scale: ${scale}`}
               >
-                <DialLogo dial={{name, svg, image}} />
+                <DialLogo dial={{name, svg}} />
               </div>
               <span class="cell_label">{name || 'Preview'}</span>
             </div>
