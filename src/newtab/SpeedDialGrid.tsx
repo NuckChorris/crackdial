@@ -1,4 +1,4 @@
-import {DEFAULT_COLOR} from '#/newtab/storage'
+import {DEFAULT_COLOR, DEFAULT_FOREGROUND} from '#/newtab/storage'
 import {normalizeUrl} from '#/newtab/util'
 import {DialLogo} from '#/newtab/DialLogo'
 import {EditIcon, PlusIcon} from '#/newtab/icons'
@@ -28,7 +28,10 @@ function DialCell({dial, onEdit}: DialCellProps) {
         }
       }}
     >
-      <div class="tile" style={`--dial-color: ${dial.color || DEFAULT_COLOR}`}>
+      <div
+        class="tile"
+        style={`--dial-color: ${dial.color || DEFAULT_COLOR}; --dial-fg: ${dial.foreground || DEFAULT_FOREGROUND}`}
+      >
         <button
           class="tile_edit"
           type="button"

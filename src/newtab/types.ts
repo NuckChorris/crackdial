@@ -5,6 +5,12 @@ export interface SpeedDial {
   url: string
   /** Background color as #rrggbb. */
   color: string
+  /**
+   * Foreground color as #rrggbb — applied as the tile's CSS color, so it tints
+   * the monogram fallback and any `currentColor` SVGs. Optional for dials saved
+   * before this field existed.
+   */
+  foreground?: string
   /** Raw inline SVG markup for the logo, or '' for a monogram fallback. */
   svg: string
 }

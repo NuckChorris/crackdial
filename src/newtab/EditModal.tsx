@@ -1,10 +1,23 @@
 import {useEffect, useState} from 'preact/hooks'
-import {DEFAULT_COLOR} from '#/newtab/storage'
+import {DEFAULT_COLOR, DEFAULT_FOREGROUND} from '#/newtab/storage'
 import {normalizeUrl, toHex} from '#/newtab/util'
 import {DialLogo} from '#/newtab/DialLogo'
+import {ColorField} from '#/newtab/ColorField'
+import {BG_PALETTE, FG_PALETTE} from '#/newtab/palette'
 import {gatherSuggestions} from '#/newtab/providers/registry'
 import type {Suggestions} from '#/newtab/providers/types'
 import type {DialDraft, ModalTarget} from '#/newtab/types'
+
+// Keep first occurrence of each color (case-insensitive), preserving order.
+function dedupeColors(colors: string[]): string[] {
+  const seen = new Set<string>()
+  return colors.filter((c) => {
+    const key = c.toLowerCase()
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
+}
 
 interface EditModalProps {
   target: ModalTarget
@@ -19,11 +32,21 @@ export function EditModal({target, onSave, onDelete, onClose}: EditModalProps) {
   const [name, setName] = useState(dial?.name ?? '')
   const [url, setUrl] = useState(dial?.url ?? '')
   const [color, setColor] = useState(toHex(dial?.color))
+  const [foreground, setForeground] = useState(
+    dial?.foreground ?? DEFAULT_FOREGROUND
+  )
   const [svg, setSvg] = useState(dial?.svg ?? '')
 
   const [busy, setBusy] = useState(false)
   const [suggestError, setSuggestError] = useState<string | null>(null)
   const [suggestions, setSuggestions] = useState<Suggestions | null>(null)
+
+  // Background swatches: colors discovered from the site (if any) first, then
+  // the default palette.
+  const bgSwatches = dedupeColors([
+    ...(suggestions?.colors.map((c) => c.color) ?? []),
+    ...BG_PALETTE
+  ])
 
   const autofill = async () => {
     const target = normalizeUrl(url)
@@ -61,7 +84,10 @@ export function EditModal({target, onSave, onDelete, onClose}: EditModalProps) {
     const cleanName = name.trim()
     const cleanUrl = normalizeUrl(url)
     if (!cleanName || !cleanUrl) return
-    onSave({name: cleanName, url: cleanUrl, color, svg: svg.trim()}, dial?.id ?? null)
+    onSave(
+      {name: cleanName, url: cleanUrl, color, foreground, svg: svg.trim()},
+      dial?.id ?? null
+    )
   }
 
   return (
@@ -129,34 +155,21 @@ export function EditModal({target, onSave, onDelete, onClose}: EditModalProps) {
                 </div>
               )}
 
-              {suggestions && suggestions.colors.length > 0 && (
-                <div class="autofill_group">
-                  <span class="modal_label">Suggested colors</span>
-                  <div class="autofill_chips">
-                    {suggestions.colors.map((suggestion, i) => (
-                      <button
-                        key={i}
-                        type="button"
-                        class="autofill_swatch"
-                        style={`background:${suggestion.color}`}
-                        title={`${suggestion.color} · ${suggestion.source}`}
-                        onClick={() => setColor(suggestion.color)}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
 
-            <label class="modal_field">
-              <span class="modal_label">Background color</span>
-              <input
-                class="modal_color"
-                type="color"
-                value={color}
-                onInput={(event) => setColor(event.currentTarget.value)}
-              />
-            </label>
+            <ColorField
+              label="Background color"
+              value={color}
+              swatches={bgSwatches}
+              onChange={setColor}
+            />
+
+            <ColorField
+              label="Text color"
+              value={foreground}
+              swatches={FG_PALETTE}
+              onChange={setForeground}
+            />
 
             <label class="modal_field">
               <span class="modal_label">Logo SVG</span>
@@ -174,7 +187,10 @@ export function EditModal({target, onSave, onDelete, onClose}: EditModalProps) {
           <div class="modal_previewWrap">
             <span class="modal_label">Preview</span>
             <div class="cell cell--preview">
-              <div class="tile" style={`--dial-color: ${color || DEFAULT_COLOR}`}>
+              <div
+                class="tile"
+                style={`--dial-color: ${color || DEFAULT_COLOR}; --dial-fg: ${foreground || DEFAULT_FOREGROUND}`}
+              >
                 <DialLogo dial={{name, svg}} />
               </div>
               <span class="cell_label">{name || 'Preview'}</span>

@@ -8,6 +8,7 @@ import type {SpeedDial} from '#/newtab/types'
 const KEY = 'speedDials'
 
 export const DEFAULT_COLOR = '#2b2f3a'
+export const DEFAULT_FOREGROUND = '#ffffff'
 
 const DEFAULT_DIALS: SpeedDial[] = [
   {
