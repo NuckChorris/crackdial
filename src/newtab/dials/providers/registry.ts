@@ -1,10 +1,10 @@
-import type {Provider, SiteContext, Suggestions} from '#/newtab/providers/types'
-import {maskIconProvider} from '#/newtab/providers/maskIcon'
-import {svgFaviconProvider} from '#/newtab/providers/svgFavicon'
-import {wikipediaProvider} from '#/newtab/providers/wikipedia'
-import {webManifestProvider} from '#/newtab/providers/webManifest'
-import {metaColorsProvider} from '#/newtab/providers/metaColors'
-import {svgColorsProvider} from '#/newtab/providers/svgColors'
+import type {Provider, SiteContext, Suggestions} from '#/newtab/dials/providers/types'
+import {maskIconProvider} from '#/newtab/dials/providers/maskIcon'
+import {svgFaviconProvider} from '#/newtab/dials/providers/svgFavicon'
+import {wikipediaProvider} from '#/newtab/dials/providers/wikipedia'
+import {webManifestProvider} from '#/newtab/dials/providers/webManifest'
+import {metaColorsProvider} from '#/newtab/dials/providers/metaColors'
+import {svgColorsProvider} from '#/newtab/dials/providers/svgColors'
 
 // Registered providers, in priority order (first = preferred in the UI).
 // Add a new source by dropping a file in this folder and listing it here.

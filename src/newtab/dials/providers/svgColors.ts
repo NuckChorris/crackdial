@@ -1,5 +1,5 @@
-import type {ColorSuggestion, Provider} from '#/newtab/providers/types'
-import {colorsFromSvg} from '#/newtab/providers/helpers'
+import type {ColorSuggestion, Provider} from '#/newtab/dials/providers/types'
+import {colorsFromSvg} from '#/newtab/dials/providers/helpers'
 
 // A later-stage provider: the logos found by the icon providers carry the brand
 // palette, so harvest their fills/strokes as color suggestions. Runs at stage 1

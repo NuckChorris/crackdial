@@ -1,10 +1,10 @@
 import {useEffect, useRef} from 'preact/hooks'
 import Sortable from 'sortablejs'
-import {DEFAULT_COLOR, DEFAULT_FOREGROUND, DEFAULT_SCALE} from '#/newtab/storage'
-import {normalizeUrl} from '#/newtab/util'
-import {DialLogo} from '#/newtab/DialLogo'
-import {EditIcon, PlusIcon} from '#/newtab/icons'
-import type {SpeedDial} from '#/newtab/types'
+import {DEFAULT_COLOR, DEFAULT_FOREGROUND, DEFAULT_SCALE} from '#/newtab/shared/storage'
+import {normalizeUrl} from '#/newtab/shared/util'
+import {DialLogo} from '#/newtab/dials/DialLogo'
+import {EditIcon, PlusIcon} from '#/newtab/shared/icons'
+import type {SpeedDial} from '#/newtab/shared/types'
 import * as styles from './SpeedDialGrid.module.css'
 
 // Per-dial wiggle timing for edit mode. Derived from the id so it's stable

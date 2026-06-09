@@ -1,4 +1,4 @@
-import type {SiteContext} from '#/newtab/providers/types'
+import type {SiteContext} from '#/newtab/dials/providers/types'
 
 /** Resolve a possibly-relative href against a base URL, or null if invalid. */
 export function resolveUrl(href: string, base: URL | string): string | null {

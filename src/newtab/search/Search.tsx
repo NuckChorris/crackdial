@@ -1,6 +1,6 @@
 import {useEffect, useRef, useState} from 'preact/hooks'
-import {BoltIcon, ClearIcon, SearchIcon} from '#/newtab/icons'
-import {KAGI_AUTOSUGGEST, KAGI_ORIGIN, KAGI_SEARCH} from '#/newtab/util'
+import {BoltIcon, ClearIcon, SearchIcon} from '#/newtab/shared/icons'
+import {KAGI_AUTOSUGGEST, KAGI_ORIGIN, KAGI_SEARCH} from '#/newtab/shared/util'
 import * as styles from './Search.module.css'
 
 // One row of Kagi's /autosuggest response. Plain query suggestions are

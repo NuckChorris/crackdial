@@ -1,4 +1,4 @@
-import type {SpeedDial} from '#/newtab/types'
+import type {SpeedDial} from '#/newtab/shared/types'
 
 // Cross-browser persistent storage for speed dials.
 // chrome.storage.local exists in Chromium browsers and Firefox alike; we fall

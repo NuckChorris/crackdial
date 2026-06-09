@@ -1,5 +1,5 @@
-import type {ColorSuggestion, Provider} from '#/newtab/providers/types'
-import {normalizeColor} from '#/newtab/providers/helpers'
+import type {ColorSuggestion, Provider} from '#/newtab/dials/providers/types'
+import {normalizeColor} from '#/newtab/dials/providers/helpers'
 
 // Accent colors declared in <meta> tags. `theme-color` is the standard one;
 // the msapplication-* tags are common legacy fallbacks.

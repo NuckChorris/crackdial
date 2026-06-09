@@ -1,5 +1,5 @@
-import type {Provider} from '#/newtab/providers/types'
-import {fetchSvg, resolveUrl} from '#/newtab/providers/helpers'
+import type {Provider} from '#/newtab/dials/providers/types'
+import {fetchSvg, resolveUrl} from '#/newtab/dials/providers/helpers'
 
 // Modern SVG favicon:
 //   <link rel="icon" type="image/svg+xml" href="/favicon.svg">

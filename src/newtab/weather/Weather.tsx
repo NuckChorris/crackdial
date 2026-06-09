@@ -1,5 +1,5 @@
 import {useEffect, useState} from 'preact/hooks'
-import {KAGI_SEARCH} from '#/newtab/util'
+import {KAGI_SEARCH} from '#/newtab/shared/util'
 import {
   conditionLabel,
   loadCachedWeather,
@@ -7,8 +7,8 @@ import {
   weatherKind,
   WEATHER_TTL,
   type Weather as WeatherData
-} from '#/newtab/weatherData'
-import {WeatherGlyph} from '#/newtab/weatherIcons'
+} from '#/newtab/weather/data'
+import {WeatherGlyph} from '#/newtab/weather/icons'
 import * as styles from './Weather.module.css'
 
 // Unobtrusive top-left current-conditions chip. Shows the last cached reading

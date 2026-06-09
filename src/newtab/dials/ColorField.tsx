@@ -1,7 +1,7 @@
 import {useRef} from 'preact/hooks'
-import {PlusIcon} from '#/newtab/icons'
-import {toHex} from '#/newtab/util'
-import {RAINBOW} from '#/newtab/palette'
+import {PlusIcon} from '#/newtab/shared/icons'
+import {toHex} from '#/newtab/shared/util'
+import {RAINBOW} from '#/newtab/shared/palette'
 import * as styles from './ColorField.module.css'
 
 interface ColorFieldProps {

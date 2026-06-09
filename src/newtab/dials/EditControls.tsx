@@ -1,5 +1,5 @@
 import {useRef} from 'preact/hooks'
-import {DownloadIcon, EditIcon, UploadIcon} from '#/newtab/icons'
+import {DownloadIcon, EditIcon, UploadIcon} from '#/newtab/shared/icons'
 import * as styles from './EditControls.module.css'
 
 interface EditControlsProps {

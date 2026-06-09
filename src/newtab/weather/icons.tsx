@@ -3,7 +3,7 @@
 // each icon carries opacity=".5"; both halves use currentColor, so the widget's
 // text color drives the whole glyph and it adapts to light/dark automatically.
 import type {VNode} from 'preact'
-import type {WeatherKind} from '#/newtab/weatherData'
+import type {WeatherKind} from '#/newtab/weather/data'
 
 // solar:sun-bold-duotone
 function ClearDay() {

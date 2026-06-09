@@ -1,5 +1,5 @@
-import type {Provider, Suggestions} from '#/newtab/providers/types'
-import {fetchSvg, normalizeColor, resolveUrl} from '#/newtab/providers/helpers'
+import type {Provider, Suggestions} from '#/newtab/dials/providers/types'
+import {fetchSvg, normalizeColor, resolveUrl} from '#/newtab/dials/providers/helpers'
 
 // Safari pinned-tab icon — the ideal source, since it carries both a
 // monochrome SVG and an accent color:

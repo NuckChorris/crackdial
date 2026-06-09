@@ -1,5 +1,5 @@
-import type {IconSuggestion, Provider} from '#/newtab/providers/types'
-import {fetchSvg} from '#/newtab/providers/helpers'
+import type {IconSuggestion, Provider} from '#/newtab/dials/providers/types'
+import {fetchSvg} from '#/newtab/dials/providers/helpers'
 
 // Wikipedia/Wikidata as a brand-logo source. Major sites have a Wikipedia
 // redirect from their domain (reddit.com -> Reddit). We surface two logos that

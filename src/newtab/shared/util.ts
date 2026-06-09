@@ -1,4 +1,4 @@
-import {DEFAULT_COLOR} from '#/newtab/storage'
+import {DEFAULT_COLOR} from '#/newtab/shared/storage'
 
 export const KAGI_ORIGIN = 'https://kagi.com'
 export const KAGI_SEARCH = `${KAGI_ORIGIN}/search?q=`

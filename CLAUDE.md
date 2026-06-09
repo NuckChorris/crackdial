@@ -73,6 +73,17 @@ for static inspection instead of killing them.
 
 ## Conventions worth knowing
 
+- **Layout is feature-folders under `src/newtab/`.** The shell stays at the
+  root (`App.tsx`, `scripts.js`, `index.html`, `styles.css`); everything else
+  lives in a folder: `shared/` (`types`, `util`, `palette`, `storage`,
+  `icons`), `search/`, `weather/` (`Weather.tsx`, `data.ts`, `icons.tsx`), and
+  `dials/` (the grid + edit UI, plus `dials/providers/`). A component and its
+  CSS module sit together, imported relatively (`./Weather.module.css`);
+  cross-folder imports use the absolute `#/newtab/<folder>/<name>` form. **macOS
+  is case-insensitive**, so never pair a `Foo.tsx` component with a `foo.ts`
+  module in the same folder — tsc's `forceConsistentCasingInFileNames` treats
+  them as one file (this is why `weather/`'s logic is `data.ts`, not
+  `weather.ts`). Name the helper for what it holds instead.
 - **`#/` imports** map to `./src/*` (package.json `imports` field + tsconfig
   `paths`) and are written **extensionless**:
   `import {App} from '#/newtab/App'`. The project is `"type": "module"`, so the
