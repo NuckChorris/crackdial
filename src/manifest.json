@@ -3,8 +3,8 @@
   "chromium:manifest_version": 3,
   "firefox:manifest_version": 2,
   "version": "1.0.0",
-  "name": "browser-launchpad",
-  "description": "Replaces the browser's new tab page with a custom launchpad.",
+  "name": "CrackDial",
+  "description": "Replaces the browser's new tab page with Kagi search and speed dials.",
   "icons": {
     "16": "images/icon.png",
     "32": "images/icon.png",

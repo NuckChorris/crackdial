@@ -42,7 +42,7 @@ export function App() {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = 'launchpad-sites.json'
+    a.download = 'crackdial-sites.json'
     document.body.appendChild(a)
     a.click()
     a.remove()

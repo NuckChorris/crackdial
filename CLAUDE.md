@@ -1,4 +1,4 @@
-# browser-launchpad
+# CrackDial
 
 A custom new tab page (Kagi search + manageable speed dials), built with
 [extension.js](https://extension.js.org), Preact, and TypeScript. The page

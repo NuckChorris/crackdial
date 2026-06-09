@@ -1,6 +1,6 @@
 {
   "private": true,
-  "name": "browser-launchpad",
+  "name": "crackdial",
   "description": "A custom new tab page with a Kagi search bar and manageable speed dials.",
   "version": "1.0.0",
   "license": "MIT",
@@ -9,9 +9,9 @@
     "#/*": "./src/*"
   },
   "author": {
-    "name": "Your Name",
-    "email": "your@email.com",
-    "url": "https://yourwebsite.com"
+    "name": "Emma Lejeck",
+    "email": "emma@nuck.moe",
+    "url": "https://nuck.moe"
   },
   "scripts": {
     "dev": "extension dev",
