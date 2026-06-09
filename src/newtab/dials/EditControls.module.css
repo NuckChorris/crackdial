@@ -33,6 +33,13 @@
   color: var(--newtab-text);
 }
 
+/* The one active button (hovered/focused) becomes the anchor the shared
+   tooltip points at. Moving this name between buttons is what makes the bubble
+   "follow the leader" and slide across — see .tip below. */
+.btnActive {
+  anchor-name: --hovered;
+}
+
 /* While editing, the whole cluster is fully visible — only the idle toggle is
    meant to fade into the background. */
 .editing .btn {
@@ -42,6 +49,120 @@
 .btn svg {
   width: 20px;
   height: 20px;
+}
+
+/* One shared "follow the leader" tooltip (https://una.im/follow-the-anchor/).
+   It anchors to `--hovered`, the name carried by whichever button is active, so
+   pointing at a new button re-targets the same element. Because `left`/`bottom`
+   resolve through anchor() and transition, the bubble *slides* between buttons.
+   It's a single element (the body) with an ::after tail, so the two share one
+   `filter: drop-shadow` and read as one speech bubble — a box-shadow would
+   outline each piece and seam where they meet, and a separate filtered wrapper
+   can't be used (a filter makes the wrapper the containing block, which breaks
+   anchor() for the children). `position: fixed` keeps the viewport as the
+   body's containing block so anchor() resolves and so the clamp below works.
+   Degrades gracefully where anchor positioning is unsupported (e.g. Firefox):
+   the bubble just won't show, and the aria-label still names each control. */
+.tip {
+  position: fixed;
+  position-anchor: --hovered;
+  bottom: calc(anchor(top) + 0.5rem);
+  /* Centre on the button, but never let the right edge cross the viewport's
+     0.5rem inset (the corner button would otherwise clip). --tip-half (the
+     measured half-width) is set in JS; the fallback covers the first frame. */
+  left: min(anchor(center), calc(100dvw - 0.5rem - var(--tip-half, 3rem)));
+  translate: -50% 4px;
+  z-index: 1;
+  /* Width is driven by the measured --tip-w so it can *transition* between
+     labels — `max-content` can't (its computed value never changes when the
+     text does). interpolate-size lets the max-content fallback interpolate to
+     the first measured width. */
+  width: var(--tip-w, max-content);
+  max-width: 14rem;
+  interpolate-size: allow-keywords;
+  padding: 0.32rem 0.55rem;
+  border: 1px solid var(--border);
+  border-radius: 0.55rem;
+  background: var(--modal-bg);
+  color: var(--newtab-text);
+  font-size: 0.78rem;
+  line-height: 1.25;
+  text-align: center;
+  white-space: nowrap;
+  filter: drop-shadow(0 5px 11px var(--shadow-strong));
+  opacity: 0;
+  pointer-events: none;
+  /* Fade + rise + width animate together; position does NOT transition here, so
+     the first appearance fades in place rather than flying from the old anchor. */
+  transition: opacity 0.16s ease, translate 0.16s ease, width 0.24s ease;
+}
+
+.tipVisible {
+  opacity: 1;
+  translate: -50% 0;
+}
+
+/* Only when moving between two buttons: slide `left`/`bottom` to the new anchor
+   (and the tail's offset along with it). The slide waits a beat so the text
+   crossfades first, *then* the bubble travels — the article's choreography. */
+.tipSliding {
+  transition: opacity 0.16s ease, translate 0.16s ease, width 0.24s ease,
+    left 0.34s cubic-bezier(0.45, 0, 0.2, 1) 0.14s,
+    bottom 0.34s cubic-bezier(0.45, 0, 0.2, 1) 0.14s;
+}
+
+/* Downward tail: a square rotated into a diamond, sitting on the body's bottom
+   edge so only the lower point shows. Bordered on just the two visible (lower)
+   sides so it continues the body's outline without double-drawing the half
+   tucked behind it. It's offset by --tip-shift (the body's clamp distance, set
+   in JS) so it keeps pointing at the button even when the body has slid inward
+   to stay on screen; --tip-shift is 0 whenever the body is centred. */
+.tip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: calc(50% + var(--tip-shift, 0px));
+  width: 0.55rem;
+  height: 0.55rem;
+  background: var(--modal-bg);
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  rotate: 45deg;
+  translate: -50% -50%;
+}
+
+.tipSliding::after {
+  transition: left 0.34s cubic-bezier(0.45, 0, 0.2, 1) 0.1s;
+}
+
+/* Crossfade the label whenever it changes. Two layers do a true cross-dissolve:
+   the incoming label (in flow, so it sizes the bubble) fades in, while the
+   outgoing label — keyed separately and laid over it — fades out. Both are
+   keyed by their text, so a change remounts each and replays its animation. */
+.tipText {
+  display: inline-block;
+  animation: tip-text-in 0.2s ease;
+}
+
+.tipTextLeaving {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: tip-text-out 0.2s ease forwards;
+}
+
+@keyframes tip-text-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes tip-text-out {
+  to {
+    opacity: 0;
+  }
 }
 
 /* Edit mode active: solid accent, fully opaque. The import/export buttons that
