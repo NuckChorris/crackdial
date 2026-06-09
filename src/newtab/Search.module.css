@@ -1,0 +1,211 @@
+/* Slot: reserves the bar's layout space so the absolutely-positioned panel can
+   overlay the grid below without shoving it down. Lifted above the grid tiles
+   (each its own stacking context via isolation/transform) but below the modal
+   (z-index: 10). */
+.search {
+  position: relative;
+  z-index: 1;
+  width: min(620px, 92vw);
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.8rem 0.9rem 0.8rem 1.6rem;
+  background: var(--modal-bg);
+  border: 1px solid var(--border);
+  /* A true (circular-arc) pill, not a squircle. Fixed at half the bar's ~66px
+     height rather than 999px: with 999px, flattening the bottom corners when the
+     panel opens halves the left-edge radius sum, which un-clamps the top corners
+     and doubles their radius. A fixed 33px stays constant open or closed. */
+  border-radius: 33px;
+  box-shadow: 0 12px 34px var(--shadow);
+  transition: border-color 0.15s ease;
+}
+
+.search:focus-within .bar {
+  border-color: var(--border-hover);
+}
+
+/* Open: bar + panel read as a single card. Flatten the seam corners; the bar's
+   bottom border stays as the divider between the input and the list. */
+.open .bar {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  color: var(--newtab-text);
+  font-size: 1.25rem;
+  outline: none;
+}
+
+.input::placeholder {
+  color: var(--newtab-muted);
+}
+
+.input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+}
+
+.action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: none;
+  border-radius: 12px;
+  corner-shape: squircle;
+  background: transparent;
+  color: var(--newtab-muted);
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.action:hover {
+  color: var(--newtab-text);
+  background: var(--surface);
+}
+
+.action svg {
+  width: 22px;
+  height: 22px;
+}
+
+.sep {
+  flex: 0 0 auto;
+  width: 1px;
+  align-self: stretch;
+  margin: 0.4rem 0.15rem;
+  background: var(--border);
+}
+
+/* ------------------------------------------------------------- suggestions */
+
+/* Absolute so opening the list overlays the grid instead of pushing it. The
+   bar's bottom border is the divider, so this drops its own top border and
+   sits flush at top: 100%; the opaque panel hides the bar's downward shadow,
+   keeping the seam clean. */
+.panel {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 5;
+  overflow: hidden;
+  background: var(--modal-bg);
+  border: 1px solid var(--border);
+  border-top: none;
+  /* Round (not squircle) to match the pill ends; 33px == the bar's corner
+     radius, so open the widget reads as one lozenge: pill top, same round bottom. */
+  border-radius: 0 0 33px 33px;
+  box-shadow: 0 18px 44px var(--shadow-strong);
+}
+
+.list {
+  margin: 0;
+  padding: 0.4rem 0;
+  list-style: none;
+  max-height: min(56vh, 460px);
+  overflow-y: auto;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.5rem 1.4rem;
+  cursor: pointer;
+  color: var(--newtab-text);
+}
+
+.active {
+  background: var(--surface-strong);
+}
+
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
+  color: var(--newtab-muted);
+}
+
+.icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.bolt {
+  color: #f5a623;
+}
+
+.icon img {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  corner-shape: squircle;
+  object-fit: cover;
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.title {
+  font-size: 1.05rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sub {
+  font-size: 0.85rem;
+  color: var(--newtab-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hints {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  padding: 0.75rem 1.4rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.8rem;
+  color: var(--newtab-muted);
+}
+
+.hint {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.hint kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.5rem;
+  height: 1.5rem;
+  padding: 0 0.4rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  corner-shape: squircle;
+  color: #f5a623;
+  font-family: inherit;
+  font-size: 0.82rem;
+}

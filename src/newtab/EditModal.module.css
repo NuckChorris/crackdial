@@ -1,0 +1,218 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
+  z-index: 10;
+}
+
+.backdrop[hidden] {
+  display: none;
+}
+
+.card {
+  width: min(560px, 100%);
+  max-height: 90vh;
+  overflow-y: auto;
+  background: var(--modal-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  corner-shape: squircle;
+  padding: 1.5rem;
+  box-shadow: 0 24px 60px var(--shadow-strong);
+}
+
+.title {
+  margin: 0 0 1.25rem;
+  font-size: 1.25rem;
+}
+
+.body {
+  display: grid;
+  grid-template-columns: 1fr 140px;
+  gap: 1.25rem;
+}
+
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  min-width: 0;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.label {
+  font-size: 0.8rem;
+  color: var(--newtab-muted);
+}
+
+.input {
+  width: 100%;
+  padding: 0.55rem 0.7rem;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  corner-shape: squircle;
+  color: var(--newtab-text);
+  font-size: 0.95rem;
+  font-family: inherit;
+  outline: none;
+}
+
+.input:focus {
+  border-color: var(--border-hover);
+}
+
+.range {
+  width: 100%;
+  accent-color: #4f7cff;
+  cursor: pointer;
+}
+
+.logoInput {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.logoUpload {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.logoFile {
+  display: none;
+}
+
+.previewWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 1.5rem;
+}
+
+.spacer {
+  flex: 1;
+}
+
+/* -------------------------------------------------------------------- button */
+
+.btn {
+  padding: 0.55rem 1.1rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  corner-shape: squircle;
+  background: var(--surface);
+  color: var(--newtab-text);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.btn:hover {
+  background: var(--surface-strong);
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.btnPrimary {
+  background: #4f7cff;
+  border-color: #4f7cff;
+  color: #fff;
+}
+
+.btnPrimary:hover {
+  background: #3f6bf0;
+}
+
+.btnDanger {
+  background: transparent;
+  border-color: transparent;
+  color: #ff6b6b;
+}
+
+.btnDanger:hover {
+  background: rgba(255, 107, 107, 0.12);
+}
+
+.btnDanger[hidden] {
+  display: none;
+}
+
+/* --------------------------------------------------------------- autofill */
+
+.autofill {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.autofillBtn {
+  width: 100%;
+}
+
+.autofillError {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #ff9a9a;
+}
+
+.autofillGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.autofillChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.autofillIcon {
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 7px;
+  background: #6b7280;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  corner-shape: squircle;
+  cursor: pointer;
+  color: #fff;
+}
+
+.autofillIcon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.autofillIcon:hover {
+  border-color: #fff;
+}
+
+@media (max-width: 520px) {
+  .body {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,250 @@
+.grid {
+  width: min(880px, 92vw);
+  display: grid;
+  /* minmax(0, 1fr), not 1fr: keeps columns equal regardless of logo size
+     (1fr's auto minimum would let intrinsic SVG dimensions widen a column). */
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1.25rem;
+}
+
+.cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  cursor: pointer;
+  border-radius: 40px;
+  corner-shape: squircle;
+  outline: none;
+  min-width: 0;
+}
+
+.cell:focus-visible {
+  box-shadow: 0 0 0 2px var(--focus-ring);
+}
+
+.tile {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Keep the aspect ratio even when a logo's intrinsic size is large. */
+  min-width: 0;
+  overflow: hidden;
+  /* Scope z-index so the edit button can sit above the (transformed) logo. */
+  isolation: isolate;
+  background: var(--dial-color, #2b2f3a);
+  /* Foreground tint: drives the monogram and any currentColor SVGs. */
+  color: var(--dial-fg, #fff);
+  border-radius: 40px;
+  corner-shape: squircle;
+  box-shadow: 0 8px 22px var(--shadow);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.cell:hover .tile {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 30px var(--shadow-strong);
+}
+
+/* iOS-style edit-mode jiggle. Per-card --wiggle-* vars (set inline) stagger the
+   phase/duration/amplitude so the cards don't move in sync. The running
+   animation overrides the hover-lift transform, which is fine in edit mode. */
+@keyframes wiggle {
+  0%,
+  100% {
+    transform: rotate(calc(var(--wiggle-rot, 1.4deg) * -1)) translateY(0.4px);
+  }
+  50% {
+    transform: rotate(var(--wiggle-rot, 1.4deg)) translateY(-0.4px);
+  }
+}
+
+.editing .tile:not(.tileAdd) {
+  animation: wiggle var(--wiggle-dur, 0.34s) ease-in-out infinite;
+  animation-delay: var(--wiggle-delay, 0s);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .editing .tile {
+    animation: none;
+  }
+}
+
+/* ---------------------------------------------------------- drag to reorder */
+
+.editing .cell:not(.cellAdd) {
+  cursor: grab;
+}
+
+.chosen {
+  cursor: grabbing;
+}
+
+/* The placeholder slot, the chosen item, and the floating clone shouldn't
+   wiggle while a drag is in progress. */
+.ghost .tile,
+.chosen .tile,
+.drag .tile {
+  animation: none;
+}
+
+/* Placeholder left in the grid showing where the tile will land. */
+.ghost {
+  opacity: 0.35;
+}
+
+/* The clone that follows the pointer — picked-up look. */
+.drag .tile {
+  transform: scale(1.05);
+  box-shadow: 0 20px 44px var(--shadow-strong);
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Generous, mostly-horizontal box so wide wordmarks aren't shrunk to a
+     square. The SVG keeps its aspect ratio within it: wordmarks fill the width,
+     square marks fill the height. */
+  width: 80%;
+  height: 56%;
+  /* Allow shrinking below the SVG's intrinsic size (flex default is auto),
+     otherwise a large logo would stretch the tile out of shape. */
+  min-width: 0;
+  min-height: 0;
+  /* Per-dial fine-tuning; does not affect layout (overflow is clipped). */
+  transform: scale(var(--logo-scale, 1));
+  /* Decorative: clicks belong to the cell (navigate) and edit button. */
+  pointer-events: none;
+}
+
+.logo svg {
+  width: 100%;
+  height: 100%;
+}
+
+/*
+ * Non-rainbow foreground recolors the logo: every filled element renders in
+ * currentColor (the foreground). The selector is deliberately broad (svg + all
+ * descendants) and `!important` so it also overrides colors set via a <style>
+ * block or class (e.g. `.st0{fill:#3b5eda}`) or an inline `style="fill:…"`.
+ * Those don't expose a [fill] attribute and would otherwise win: a class rule
+ * that directly matches a path beats the currentColor we'd merely inherit from
+ * the root, and only `!important` outranks the SVG's own normal <style> rule.
+ * `fill="none"` is spared so stroke-only line icons keep their shape; rainbow
+ * tiles are excluded so their colors survive.
+ */
+.tile:not(.rainbow) .logo svg:not([fill='none']),
+.tile:not(.rainbow) .logo svg *:not([fill='none']) {
+  fill: currentColor !important;
+}
+
+/*
+ * Same for stroke — but only elements that explicitly set one. Stroke defaults
+ * to none, so (unlike fill) there's no catch-all: that would add an outline to
+ * every fill-only icon. `!important` keeps it ahead of any <style>/class stroke.
+ */
+.tile:not(.rainbow) .logo svg[stroke]:not([stroke='none']),
+.tile:not(.rainbow) .logo svg [stroke]:not([stroke='none']) {
+  stroke: currentColor !important;
+}
+
+.monogram {
+  font-size: 1.9rem;
+  font-weight: 700;
+  color: currentColor;
+  line-height: 1;
+}
+
+/* Rainbow foreground: gradient monogram, and SVG colors left untouched. */
+.rainbow .monogram {
+  background: linear-gradient(
+    90deg,
+    #ff4b4b,
+    #ff8a00,
+    #ffe600,
+    #00d26a,
+    #00a3ff,
+    #b14bff,
+    #ff4bd8
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+.tileAdd {
+  background: transparent;
+  border: 2px dashed var(--border);
+  box-shadow: none;
+  color: var(--newtab-muted);
+}
+
+.tileAdd .logo {
+  width: 28px;
+  height: 28px;
+}
+
+.cell:hover .tileAdd {
+  border-color: var(--border-hover);
+  transform: translateY(-3px);
+  box-shadow: none;
+}
+
+.label {
+  max-width: 100%;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--newtab-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.edit {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 1;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.32);
+  color: #fff;
+  cursor: pointer;
+  /* Rendered only in edit mode, so it's shown whenever present. */
+  transition: background 0.15s ease;
+}
+
+.edit svg {
+  width: 14px;
+  height: 14px;
+}
+
+.edit:hover {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+/* Modal preview: a static, non-interactive tile (no hover lift, no pointer). */
+.preview {
+  cursor: default;
+}
+
+.preview:hover .tile {
+  transform: none;
+}
+
+@media (max-width: 640px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

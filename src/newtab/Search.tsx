@@ -1,6 +1,7 @@
 import {useEffect, useRef, useState} from 'preact/hooks'
 import {BoltIcon, ClearIcon, SearchIcon} from '#/newtab/icons'
 import {KAGI_AUTOSUGGEST, KAGI_ORIGIN, KAGI_SEARCH} from '#/newtab/util'
+import * as styles from './Search.module.css'
 
 // One row of Kagi's /autosuggest response. Plain query suggestions are
 // {t, txt: null, img: null, k: 'kagi'}; entity rows (films, books, bang
@@ -118,14 +119,14 @@ export function Search() {
 
   return (
     <form
-      class={`search${open ? ' search--open' : ''}`}
+      class={`${styles.search}${open ? ` ${styles.open}` : ''}`}
       role="search"
       onSubmit={onSubmit}
     >
-      <div class="search_bar">
+      <div class={styles.bar}>
         <input
           ref={inputRef}
-          class="search_input"
+          class={styles.input}
           type="search"
           placeholder="Search with Kagi"
           autocomplete="off"
@@ -147,7 +148,7 @@ export function Search() {
           <>
             <button
               type="button"
-              class="search_action"
+              class={styles.action}
               aria-label="Clear search"
               // Keep input focus so the dropdown doesn't blur shut on click.
               onMouseDown={(event) => event.preventDefault()}
@@ -155,17 +156,17 @@ export function Search() {
             >
               <ClearIcon />
             </button>
-            <span class="search_sep" aria-hidden="true" />
+            <span class={styles.sep} aria-hidden="true" />
           </>
         )}
-        <button type="submit" class="search_action" aria-label="Search">
+        <button type="submit" class={styles.action} aria-label="Search">
           <SearchIcon />
         </button>
       </div>
 
       {open && (
-        <div class="search_panel">
-          <ul class="suggest" id="search-suggest" role="listbox">
+        <div class={styles.panel}>
+          <ul class={styles.list} id="search-suggest" role="listbox">
             {items.map((item, i) => {
               const quick = isQuickAnswer(item)
               return (
@@ -174,7 +175,7 @@ export function Search() {
                   id={`search-suggest-${i}`}
                   role="option"
                   aria-selected={i === active}
-                  class={`suggest_item${i === active ? ' suggest_item--active' : ''}`}
+                  class={`${styles.item}${i === active ? ` ${styles.active}` : ''}`}
                   // mousedown (not click) fires before blur; preventDefault keeps
                   // focus so navigation isn't pre-empted by the list closing.
                   onMouseDown={(event) => {
@@ -183,7 +184,7 @@ export function Search() {
                   }}
                   onMouseEnter={() => setActive(i)}
                 >
-                  <span class={`suggest_icon${quick ? ' suggest_icon--bolt' : ''}`}>
+                  <span class={`${styles.icon}${quick ? ` ${styles.bolt}` : ''}`}>
                     {item.img ? (
                       <img
                         src={item.img}
@@ -200,23 +201,23 @@ export function Search() {
                       <SearchIcon />
                     )}
                   </span>
-                  <span class="suggest_main">
-                    <span class="suggest_title">{item.t}</span>
-                    {item.txt && <span class="suggest_sub">{item.txt}</span>}
+                  <span class={styles.main}>
+                    <span class={styles.title}>{item.t}</span>
+                    {item.txt && <span class={styles.sub}>{item.txt}</span>}
                   </span>
                 </li>
               )
             })}
           </ul>
 
-          <div class="suggest_hints">
-            <span class="hint">
+          <div class={styles.hints}>
+            <span class={styles.hint}>
               <kbd>?</kbd> at the end of your query triggers Quick Answer
             </span>
-            <span class="hint">
+            <span class={styles.hint}>
               <kbd>@</kbd> limit search results to a specific website
             </span>
-            <span class="hint">
+            <span class={styles.hint}>
               <kbd>!</kbd> search result on a specific site
             </span>
           </div>

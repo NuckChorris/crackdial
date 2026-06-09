@@ -5,6 +5,7 @@ import {normalizeUrl} from '#/newtab/util'
 import {DialLogo} from '#/newtab/DialLogo'
 import {EditIcon, PlusIcon} from '#/newtab/icons'
 import type {SpeedDial} from '#/newtab/types'
+import * as styles from './SpeedDialGrid.module.css'
 
 // Per-dial wiggle timing for edit mode. Derived from the id so it's stable
 // across re-renders (no reshuffle on every keystroke) yet varies card-to-card:
@@ -39,7 +40,7 @@ function DialCell({dial, editMode, onEdit}: DialCellProps) {
 
   return (
     <div
-      class="cell"
+      class={styles.cell}
       data-id={dial.id}
       tabindex={0}
       title={editMode ? `Edit ${dial.name}` : dial.name}
@@ -52,12 +53,12 @@ function DialCell({dial, editMode, onEdit}: DialCellProps) {
       }}
     >
       <div
-        class={`tile${rainbow ? ' tile--rainbow' : ''}`}
+        class={`${styles.tile}${rainbow ? ` ${styles.rainbow}` : ''}`}
         style={`--dial-color: ${dial.color || DEFAULT_COLOR}${rainbow ? '' : `; --dial-fg: ${fg}`}; --logo-scale: ${dial.scale ?? DEFAULT_SCALE}; ${wiggleVars(dial.id)}`}
       >
         {editMode && (
           <button
-            class="tile_edit"
+            class={styles.edit}
             type="button"
             title="Edit"
             aria-label={`Edit ${dial.name}`}
@@ -71,7 +72,7 @@ function DialCell({dial, editMode, onEdit}: DialCellProps) {
         )}
         <DialLogo dial={dial} />
       </div>
-      <span class="cell_label">{dial.name}</span>
+      <span class={styles.label}>{dial.name}</span>
     </div>
   )
 }
@@ -83,7 +84,7 @@ interface AddCellProps {
 function AddCell({onAdd}: AddCellProps) {
   return (
     <div
-      class="cell cell--add"
+      class={`${styles.cell} ${styles.cellAdd}`}
       tabindex={0}
       title="Add a site"
       onClick={onAdd}
@@ -94,12 +95,12 @@ function AddCell({onAdd}: AddCellProps) {
         }
       }}
     >
-      <div class="tile tile--add">
-        <span class="tile_logo">
+      <div class={`${styles.tile} ${styles.tileAdd}`}>
+        <span class={styles.logo}>
           <PlusIcon />
         </span>
       </div>
-      <span class="cell_label">Add a site</span>
+      <span class={styles.label}>Add a site</span>
     </div>
   )
 }
@@ -131,13 +132,13 @@ export function SpeedDialGrid({
     const sortable = Sortable.create(el, {
       animation: 150,
       forceFallback: true, // consistent drag visuals + touch support
-      draggable: '.cell',
-      filter: '.cell--add', // the "Add a site" tile isn't draggable
-      ghostClass: 'cell--ghost',
-      chosenClass: 'cell--chosen',
-      dragClass: 'cell--drag',
+      draggable: `.${styles.cell}`,
+      filter: `.${styles.cellAdd}`, // the "Add a site" tile isn't draggable
+      ghostClass: styles.ghost,
+      chosenClass: styles.chosen,
+      dragClass: styles.drag,
       // Don't let a dragged tile land relative to the (pinned) add tile.
-      onMove: (evt) => !evt.related.classList.contains('cell--add'),
+      onMove: (evt) => !evt.related.classList.contains(styles.cellAdd),
       onEnd: (evt) => {
         const {oldIndex, newIndex, item, from} = evt
         if (oldIndex == null || newIndex == null || oldIndex === newIndex) return
@@ -156,7 +157,7 @@ export function SpeedDialGrid({
   }, [editMode, onReorder])
 
   return (
-    <div ref={gridRef} class={`grid${editMode ? ' grid--edit' : ''}`}>
+    <div ref={gridRef} class={`${styles.grid}${editMode ? ` ${styles.editing}` : ''}`}>
       {dials.map((dial) => (
         <DialCell key={dial.id} dial={dial} editMode={editMode} onEdit={onEdit} />
       ))}

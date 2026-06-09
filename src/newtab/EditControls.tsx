@@ -1,5 +1,6 @@
 import {useRef} from 'preact/hooks'
 import {DownloadIcon, EditIcon, UploadIcon} from '#/newtab/icons'
+import * as styles from './EditControls.module.css'
 
 interface EditControlsProps {
   editMode: boolean
@@ -19,12 +20,12 @@ export function EditControls({
   const fileRef = useRef<HTMLInputElement>(null)
 
   return (
-    <div class={`editbar${editMode ? ' editbar--editing' : ''}`}>
+    <div class={`${styles.bar}${editMode ? ` ${styles.editing}` : ''}`}>
       {editMode && (
         <>
           <button
             type="button"
-            class="editbar_btn"
+            class={styles.btn}
             title="Import sites…"
             aria-label="Import sites from a file"
             onClick={() => fileRef.current?.click()}
@@ -33,7 +34,7 @@ export function EditControls({
           </button>
           <button
             type="button"
-            class="editbar_btn"
+            class={styles.btn}
             title="Export sites…"
             aria-label="Export sites to a file"
             onClick={onExport}
@@ -45,7 +46,7 @@ export function EditControls({
 
       <button
         type="button"
-        class={`editbar_btn${editMode ? ' editbar_btn--on' : ''}`}
+        class={`${styles.btn}${editMode ? ` ${styles.btnOn}` : ''}`}
         title={editMode ? 'Done editing' : 'Edit sites'}
         aria-label={editMode ? 'Done editing' : 'Edit sites'}
         aria-pressed={editMode}
@@ -58,7 +59,7 @@ export function EditControls({
         ref={fileRef}
         type="file"
         accept="application/json,.json"
-        class="editbar_file"
+        class={styles.file}
         onChange={(event) => {
           const input = event.currentTarget as HTMLInputElement
           const file = input.files?.[0]

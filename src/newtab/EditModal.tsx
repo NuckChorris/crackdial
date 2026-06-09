@@ -9,6 +9,8 @@ import type {LogoResult} from '#/newtab/providers/helpers'
 import {gatherSuggestions} from '#/newtab/providers/registry'
 import type {Suggestions} from '#/newtab/providers/types'
 import type {DialDraft, ModalTarget} from '#/newtab/types'
+import * as styles from './EditModal.module.css'
+import * as tile from './SpeedDialGrid.module.css'
 
 // Keep first occurrence of each color (case-insensitive), preserving order.
 function dedupeColors(colors: string[]): string[] {
@@ -166,20 +168,20 @@ export function EditModal({target, onSave, onDelete, onClose}: EditModalProps) {
 
   return (
     <div
-      class="modal_backdrop"
+      class={styles.backdrop}
       onClick={(event) => {
         if (event.target === event.currentTarget) onClose()
       }}
     >
-      <form class="modal_card" onSubmit={submit}>
-        <h2 class="modal_title">{dial ? 'Edit site' : 'Add a site'}</h2>
+      <form class={styles.card} onSubmit={submit}>
+        <h2 class={styles.title}>{dial ? 'Edit site' : 'Add a site'}</h2>
 
-        <div class="modal_body">
-          <div class="modal_fields">
-            <label class="modal_field">
-              <span class="modal_label">Name</span>
+        <div class={styles.body}>
+          <div class={styles.fields}>
+            <label class={styles.field}>
+              <span class={styles.label}>Name</span>
               <input
-                class="modal_input"
+                class={styles.input}
                 type="text"
                 placeholder="YouTube"
                 value={name}
@@ -188,10 +190,10 @@ export function EditModal({target, onSave, onDelete, onClose}: EditModalProps) {
               />
             </label>
 
-            <label class="modal_field">
-              <span class="modal_label">URL</span>
+            <label class={styles.field}>
+              <span class={styles.label}>URL</span>
               <input
-                class="modal_input"
+                class={styles.input}
                 type="text"
                 placeholder="youtube.com"
                 value={url}
@@ -199,27 +201,27 @@ export function EditModal({target, onSave, onDelete, onClose}: EditModalProps) {
               />
             </label>
 
-            <div class="autofill">
+            <div class={styles.autofill}>
               <button
                 type="button"
-                class="btn autofill_btn"
+                class={`${styles.btn} ${styles.autofillBtn}`}
                 disabled={!normalizeUrl(url) || busy}
                 onClick={autofill}
               >
                 {busy ? 'Reading site…' : '✨ Auto-fill from site'}
               </button>
 
-              {suggestError && <p class="autofill_error">{suggestError}</p>}
+              {suggestError && <p class={styles.autofillError}>{suggestError}</p>}
 
               {suggestions && suggestions.icons.length > 0 && (
-                <div class="autofill_group">
-                  <span class="modal_label">Suggested icons</span>
-                  <div class="autofill_chips">
+                <div class={styles.autofillGroup}>
+                  <span class={styles.label}>Suggested icons</span>
+                  <div class={styles.autofillChips}>
                     {suggestions.icons.map((icon, i) => (
                       <button
                         key={i}
                         type="button"
-                        class="autofill_icon"
+                        class={styles.autofillIcon}
                         title={icon.source}
                         onClick={() => pickSvg(icon.svg)}
                         dangerouslySetInnerHTML={{__html: icon.svg}}
@@ -245,20 +247,20 @@ export function EditModal({target, onSave, onDelete, onClose}: EditModalProps) {
               onChange={setForeground}
             />
 
-            <div class="modal_field">
-              <span class="modal_label">Logo{logoBusy ? ' · loading…' : ''}</span>
-              <div class="logo_input">
-                <label class="btn logo_upload">
+            <div class={styles.field}>
+              <span class={styles.label}>Logo{logoBusy ? ' · loading…' : ''}</span>
+              <div class={styles.logoInput}>
+                <label class={`${styles.btn} ${styles.logoUpload}`}>
                   Upload SVG…
                   <input
-                    class="logo_file"
+                    class={styles.logoFile}
                     type="file"
                     accept=".svg,image/svg+xml"
                     onChange={onUpload}
                   />
                 </label>
                 <input
-                  class="modal_input"
+                  class={styles.input}
                   type="url"
                   placeholder="…or paste an SVG URL"
                   value={logoUrl}
@@ -273,13 +275,13 @@ export function EditModal({target, onSave, onDelete, onClose}: EditModalProps) {
                   }}
                 />
               </div>
-              {logoError && <p class="autofill_error">{logoError}</p>}
+              {logoError && <p class={styles.autofillError}>{logoError}</p>}
             </div>
 
-            <label class="modal_field">
-              <span class="modal_label">Logo size · {Math.round(scale * 100)}%</span>
+            <label class={styles.field}>
+              <span class={styles.label}>Logo size · {Math.round(scale * 100)}%</span>
               <input
-                class="modal_range"
+                class={styles.range}
                 type="range"
                 min="0.5"
                 max="2"
@@ -290,31 +292,31 @@ export function EditModal({target, onSave, onDelete, onClose}: EditModalProps) {
             </label>
           </div>
 
-          <div class="modal_previewWrap">
-            <span class="modal_label">Preview</span>
-            <div class="cell cell--preview">
+          <div class={styles.previewWrap}>
+            <span class={styles.label}>Preview</span>
+            <div class={`${tile.cell} ${tile.preview}`}>
               <div
-                class={`tile${previewRainbow ? ' tile--rainbow' : ''}`}
+                class={`${tile.tile}${previewRainbow ? ` ${tile.rainbow}` : ''}`}
                 style={`--dial-color: ${color || DEFAULT_COLOR}${previewRainbow ? '' : `; --dial-fg: ${foreground || DEFAULT_FOREGROUND}`}; --logo-scale: ${scale}`}
               >
                 <DialLogo dial={{name, svg}} />
               </div>
-              <span class="cell_label">{name || 'Preview'}</span>
+              <span class={tile.label}>{name || 'Preview'}</span>
             </div>
           </div>
         </div>
 
-        <div class="modal_actions">
+        <div class={styles.actions}>
           {dial && (
-            <button class="btn btn--danger" type="button" onClick={() => onDelete(dial.id)}>
+            <button class={`${styles.btn} ${styles.btnDanger}`} type="button" onClick={() => onDelete(dial.id)}>
               Delete
             </button>
           )}
-          <div class="modal_spacer" />
-          <button class="btn" type="button" onClick={onClose}>
+          <div class={styles.spacer} />
+          <button class={styles.btn} type="button" onClick={onClose}>
             Cancel
           </button>
-          <button class="btn btn--primary" type="submit">
+          <button class={`${styles.btn} ${styles.btnPrimary}`} type="submit">
             Save
           </button>
         </div>
