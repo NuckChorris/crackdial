@@ -2,6 +2,7 @@ import {useCallback, useEffect, useState} from 'preact/hooks'
 import {dialsFromJson, dialsToJson, loadDials, saveDials} from '#/newtab/storage'
 import {arrayMove, newId} from '#/newtab/util'
 import {Search} from '#/newtab/Search'
+import {Weather} from '#/newtab/Weather'
 import {SpeedDialGrid} from '#/newtab/SpeedDialGrid'
 import {EditControls} from '#/newtab/EditControls'
 import {EditModal} from '#/newtab/EditModal'
@@ -75,6 +76,7 @@ export function App() {
 
   return (
     <main class="page">
+      <Weather />
       <Search />
       <SpeedDialGrid
         dials={dials}

@@ -16,13 +16,15 @@
     "newtab": "newtab/index.html"
   },
   "chromium:permissions": [
-    "storage"
+    "storage",
+    "geolocation"
   ],
   "chromium:host_permissions": [
     "<all_urls>"
   ],
   "firefox:permissions": [
     "storage",
+    "geolocation",
     "<all_urls>"
   ],
   "author": "Emma Lejeck"

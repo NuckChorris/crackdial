@@ -1,0 +1,65 @@
+/* Fixed top-left current-weather chip. Like the edit cluster, it idles faded
+   and brightens on hover/focus so it stays out of the way. Above the grid,
+   below the modal (z-index: 10). */
+.widget {
+  position: fixed;
+  top: 1.25rem;
+  left: 1.25rem;
+  z-index: 6;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.4rem 0.7rem 0.4rem 0.45rem;
+  border-radius: 14px;
+  corner-shape: squircle;
+  color: var(--newtab-text);
+  text-decoration: none;
+  opacity: 0.6;
+  transition: opacity 0.15s ease, background 0.15s ease;
+}
+
+.widget:hover {
+  opacity: 1;
+  background: var(--surface);
+}
+
+.widget:focus-visible {
+  opacity: 1;
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+/* Solar bicolor glyph — duotone via currentColor, so it tracks the text color. */
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.icon svg {
+  width: 38px;
+  height: 38px;
+}
+
+/* City over temperature, stacked tight to the right of the glyph. */
+.info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.15;
+}
+
+.city {
+  max-width: 9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.78rem;
+  color: var(--newtab-muted);
+}
+
+.temp {
+  font-size: 1.05rem;
+  font-weight: 500;
+}
