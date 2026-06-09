@@ -62,8 +62,7 @@
   height: 38px;
   padding: 0;
   border: none;
-  border-radius: 12px;
-  corner-shape: squircle;
+  border-radius: 50%;
   background: transparent;
   color: var(--newtab-muted);
   cursor: pointer;
