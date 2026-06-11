@@ -12,21 +12,36 @@ import {WeatherGlyph} from '#/newtab/weather/icons'
 import * as styles from './Weather.module.css'
 
 // Unobtrusive top-left current-conditions chip. Shows the last cached reading
-// instantly, then refreshes from geolocation + Open-Meteo if it's stale.
-// Clicking searches Kagi for "weather". Renders nothing until there's
-// something to show — denied geolocation just leaves the corner empty.
+// instantly, refreshes from geolocation + Open-Meteo if it's stale, then keeps
+// refreshing every WEATHER_TTL (15 min) while the tab stays open. Clicking
+// searches Kagi for "weather". Renders nothing until there's something to show
+// — denied geolocation just leaves the corner empty.
 export function Weather() {
   const [weather, setWeather] = useState<WeatherData | null>(loadCachedWeather)
 
   useEffect(() => {
-    const cached = loadCachedWeather()
-    if (cached && Date.now() - cached.fetchedAt < WEATHER_TTL) return
     let live = true
-    refreshWeather(cached).then((next) => {
-      if (live && next) setWeather(next)
-    })
+    // Track the latest reading so each refresh can reuse its city (skipping the
+    // reverse-geocode) when the device hasn't moved.
+    let current = loadCachedWeather()
+
+    const tick = () => {
+      refreshWeather(current).then((next) => {
+        if (live && next) {
+          current = next
+          setWeather(next)
+        }
+      })
+    }
+
+    // Refresh now if the cached reading is missing or stale, then on a timer.
+    // Well under Open-Meteo's limits: one call per 15 min is ~2,900/month.
+    if (!current || Date.now() - current.fetchedAt >= WEATHER_TTL) tick()
+    const timer = setInterval(tick, WEATHER_TTL)
+
     return () => {
       live = false
+      clearInterval(timer)
     }
   }, [])
 
