@@ -1,0 +1,35 @@
+name: CI
+
+# Validates that the extension type-checks and builds for every target on each
+# pull request and on direct pushes to main (the release workflow only builds
+# when the version is actually bumped, so this covers the in-between pushes).
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+# A newer push to the same branch/PR supersedes an in-flight run.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - name: Build all browser targets
+        run: |
+          npx extension build --browser chrome  --silent
+          npx extension build --browser firefox --silent
+          npx extension build --browser edge    --silent
