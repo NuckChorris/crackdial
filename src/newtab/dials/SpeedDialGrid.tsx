@@ -27,53 +27,68 @@ interface DialCellProps {
 }
 
 function DialCell({dial, editMode, onEdit}: DialCellProps) {
-  const go = () => {
-    const url = normalizeUrl(dial.url)
-    if (url) window.location.href = url
-  }
-
-  // In edit mode the whole tile is the edit target; otherwise it's the link.
-  const activate = () => (editMode ? onEdit(dial.id) : go())
-
   const fg = dial.foreground || DEFAULT_FOREGROUND
   const rainbow = fg === 'rainbow'
 
-  return (
+  const tile = (
     <div
+      class={`${styles.tile}${rainbow ? ` ${styles.rainbow}` : ''}`}
+      style={`--dial-color: ${dial.color || DEFAULT_COLOR}${rainbow ? '' : `; --dial-fg: ${fg}`}; --logo-scale: ${dial.scale ?? DEFAULT_SCALE}; ${wiggleVars(dial.id)}`}
+    >
+      {editMode && (
+        <button
+          class={styles.edit}
+          type="button"
+          title="Edit"
+          aria-label={`Edit ${dial.name}`}
+          onClick={(event) => {
+            event.stopPropagation()
+            onEdit(dial.id)
+          }}
+        >
+          <EditIcon />
+        </button>
+      )}
+      <DialLogo dial={dial} />
+    </div>
+  )
+  const label = <span class={styles.label}>{dial.name}</span>
+
+  // Edit mode: the whole tile is the edit target — a plain focusable div so the
+  // nested edit button stays valid and SortableJS can drag it cleanly.
+  if (editMode) {
+    return (
+      <div
+        class={styles.cell}
+        data-id={dial.id}
+        tabindex={0}
+        title={`Edit ${dial.name}`}
+        onClick={() => onEdit(dial.id)}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter') {
+            event.preventDefault()
+            onEdit(dial.id)
+          }
+        }}
+      >
+        {tile}
+        {label}
+      </div>
+    )
+  }
+
+  // Browse mode: a real link, so the browser shows the URL on hover and
+  // cmd/middle-click opens it in a new tab. Native focus + Enter activation.
+  return (
+    <a
       class={styles.cell}
       data-id={dial.id}
-      tabindex={0}
-      title={editMode ? `Edit ${dial.name}` : dial.name}
-      onClick={activate}
-      onKeyDown={(event) => {
-        if (event.key === 'Enter') {
-          event.preventDefault()
-          activate()
-        }
-      }}
+      href={normalizeUrl(dial.url) || undefined}
+      title={dial.name}
     >
-      <div
-        class={`${styles.tile}${rainbow ? ` ${styles.rainbow}` : ''}`}
-        style={`--dial-color: ${dial.color || DEFAULT_COLOR}${rainbow ? '' : `; --dial-fg: ${fg}`}; --logo-scale: ${dial.scale ?? DEFAULT_SCALE}; ${wiggleVars(dial.id)}`}
-      >
-        {editMode && (
-          <button
-            class={styles.edit}
-            type="button"
-            title="Edit"
-            aria-label={`Edit ${dial.name}`}
-            onClick={(event) => {
-              event.stopPropagation()
-              onEdit(dial.id)
-            }}
-          >
-            <EditIcon />
-          </button>
-        )}
-        <DialLogo dial={dial} />
-      </div>
-      <span class={styles.label}>{dial.name}</span>
-    </div>
+      {tile}
+      {label}
+    </a>
   )
 }
 

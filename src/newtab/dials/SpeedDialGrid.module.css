@@ -17,6 +17,10 @@
   corner-shape: squircle;
   outline: none;
   min-width: 0;
+  /* Browse-mode cells are <a> tags; strip the default link underline/color so
+     the tile and muted label render the same as the edit-mode <div>. */
+  color: inherit;
+  text-decoration: none;
 }
 
 .cell:focus-visible {
