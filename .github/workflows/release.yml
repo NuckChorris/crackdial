@@ -1,0 +1,70 @@
+name: Release
+
+# Cuts a GitHub Release whenever package.json's version is bumped on main.
+# Detection is by tag: if v<version> doesn't already exist, the version is new,
+# so we build all three browser targets and attach their zips to the release.
+# Bumping the version and pushing to main is the whole release ritual.
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write # create the tag + release
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.check.outputs.version }}
+      new: ${{ steps.check.outputs.new }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # need the full tag list to know what's already released
+      - id: check
+        run: |
+          version=$(node -p "require('./package.json').version")
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          if git rev-parse --verify --quiet "refs/tags/v$version" >/dev/null; then
+            echo "v$version is already released — nothing to do."
+            echo "new=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "v$version is new — will build and release."
+            echo "new=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  release:
+    needs: check
+    if: needs.check.outputs.new == 'true'
+    runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ needs.check.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - name: Build all browser targets
+        # extension.js names every zip crackdial-<version>.zip inside its own
+        # dist/<browser>/ dir, so they only collide by basename once uploaded.
+        # Copy each to a per-browser name for the release. (--zip-filename is
+        # avoided here: it strips dots/dashes and mangles the name.)
+        run: |
+          npx extension build --browser chrome  --zip --silent
+          npx extension build --browser firefox --zip --silent
+          npx extension build --browser edge    --zip --silent
+          mkdir -p release
+          cp dist/chrome/*.zip  "release/crackdial-chrome-$VERSION.zip"
+          cp dist/firefox/*.zip "release/crackdial-firefox-$VERSION.zip"
+          cp dist/edge/*.zip    "release/crackdial-edge-$VERSION.zip"
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ env.VERSION }}
+          name: v${{ env.VERSION }}
+          generate_release_notes: true
+          files: release/*.zip
