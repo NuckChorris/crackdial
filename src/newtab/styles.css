@@ -64,12 +64,17 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 16vh 1.5rem 4rem;
+  /* Floor the top padding so the search bar always clears the fixed weather
+     chip (top-left, ~71px tall incl. its 1.25rem offset). Without the floor,
+     a short viewport shrinks the vh padding until the bar rides up under the
+     chip — including short landscape phones, which are too wide for the mobile
+     query below, so the base rule needs the floor too. */
+  padding: max(16vh, 5.5rem) 1.5rem 4rem;
   gap: 3rem;
 }
 
 @media (max-width: 640px) {
   .page {
-    padding-top: 10vh;
+    padding-top: max(10vh, 5.5rem);
   }
 }
